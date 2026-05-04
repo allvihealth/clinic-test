@@ -17,7 +17,7 @@ const ClinicalSummary = () => {
 
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : 'https://allvibackend.onrender.com';
+        : 'https://allvi-backend.onrender.com';
 
     const handlePrint = () => {
         window.print();
