@@ -725,12 +725,12 @@ const PatientReviewView = ({ reviews }) => {
 
 // ─── MAIN DASHBOARD ────────────────────────────────────────────────────────────
 
-const Dashboard = ({patientId}) => {
+const Dashboard = ({ patientId }) => {
     const navigate = useNavigate();
     const [data, setData] = useState({ labs: [], symptoms: [], specialistReviews: [] });
     const [demographics, setDemographics] = useState({ age: '—', gender: '—' });
     const [intakeData, setIntakeData] = useState(null);
-   
+
     // ✅ HOOK MOVED HERE: Safely inside the component
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
@@ -830,35 +830,37 @@ const Dashboard = ({patientId}) => {
         document.title = originalTitle;
     };
 
-    const handleCSVUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: 'greedy', // <-- CRITICAL: Removes empty rows/trailing spaces
-            transformHeader: (header) => header.trim(), // <-- Cleans up header names
-            complete: async (results) => {
-                try {
-                    // Filter out any rows that don't have a date (protects the backend)
-                    const validData = results.data.filter(row => row.date || row.Date);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("patientId", patientId);
 
-                    if (validData.length === 0) {
-                        return alert("No valid symptom data found in CSV.");
-                    }
+        try {
+            const response = await axios.post(`${baseURL}/api/patient/import-symptoms`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
 
-                    await axios.post(`${baseURL}/api/patient/import-symptoms`, {
-                        patientId: patientId,
-                        symptoms: validData
-                    });
+            const { message, newSymptoms } = response.data;
 
-                    alert("Symptoms imported successfully!");
-                    window.location.reload(); // Refresh to see the new chart
-                } catch (err) {
-                    console.error("Import failed", err);
-                }
+            // Update the state locally so the chart refreshes instantly
+            if (newSymptoms && newSymptoms.length > 0) {
+                setData(prev => ({
+                    ...prev,
+                    // Combine old symptoms with new ones and sort by date
+                    symptoms: [...prev.symptoms, ...newSymptoms].sort((a, b) =>
+                        new Date(a.date) - new Date(b.date)
+                    )
+                }));
             }
-        });
+
+            alert(message || "Data imported successfully!");
+        } catch (err) {
+            console.error("Import failed", err);
+            alert(`Upload Error: ${err.response?.data?.error || "Failed to upload file."}`);
+        }
     };
     const ChartCard = ({ title, dataKey, color, data }) => {
         const latestEntry = [...data].reverse().find(entry => entry[dataKey] !== undefined);
@@ -963,7 +965,12 @@ const Dashboard = ({patientId}) => {
                     <div className="flex gap-3">
                         <label className="bg-[#0F4C5C] text-[#F7F1E8] px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 cursor-pointer shadow-md">
                             <FileUp size={18} /> Import additional data
-                            <input type="file" accept=".csv" onChange={handleCSVUpload} className="hidden" />
+                            <input
+                                type="file"
+                                accept="., .pdf, application/pdf, text/csv"
+                                onChange={handleFileUpload}
+                                className="hidden"
+                            />
                         </label>
                         <button onClick={handleDownload} className="bg-[#1F2937] text-[#F7F1E8] px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
                             <Printer size={18} /> Download Report
@@ -1014,24 +1021,38 @@ const Dashboard = ({patientId}) => {
                     </section>
 
                     <section className="print-full-width" style={{ breakInside: 'avoid' }}>
-                        <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest mb-4">Symptom Correlation Trends</h2>
-                        <div className="bg-white p-6 rounded-xl border border-black/10 print:border-black print:border-[0.5pt]">
-                            <div style={{ width: '100%', height: 320 }}>
-                                {isMounted && (
-                                    <ResponsiveContainer  style={{ width: '100%', height: 320, minHeight: 320, position: 'relative' }}>
-                                        {/* Notice the added minHeight and flex constraints */}
-                                         {isMounted && data.symptoms && data.symptoms.length > 0 ? (
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <LineChart data={data.symptoms}>
-                                                        {/* ... your LineChart components ... */}
-                                                    </LineChart>
-                                                </ResponsiveContainer>
-                                            ) : (
-                                                <div className="absolute inset-0 flex items-center justify-center text-sm text-gray-400 font-medium italic">
-                                                    No symptom data available yet.
-                                                </div>
-                                            )}
+                        <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest mb-4">
+                            Symptom Correlation Trends
+                        </h2>
+                        <div className="bg-white p-6 rounded-xl border border-black/10 shadow-sm">
+                            <div style={{ width: '100%', height: 320, minHeight: 320 }}>
+                                {isMounted && data.symptoms && data.symptoms.length > 0 ? (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={data.symptoms} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                            <XAxis
+                                                dataKey="date"
+                                                tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }}
+                                            />
+                                            <YAxis tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }} />
+                                            <Tooltip
+                                                contentStyle={{ borderRadius: '12px', backgroundColor: '#1F2937', color: '#fff' }}
+                                            />
+                                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase' }} />
+
+                                            {/* Dynamic Lines for Symptoms */}
+                                            <Line type="monotone" dataKey="energy" stroke="#0F4C5C" strokeWidth={2} dot={{ r: 3 }} />
+                                            <Line type="monotone" dataKey="mood" stroke="#7c3aed" strokeWidth={2} dot={{ r: 3 }} />
+                                            <Line type="monotone" dataKey="stress" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} />
+                                            <Line type="monotone" dataKey="joint_pain" stroke="#be185d" strokeWidth={2} dot={{ r: 3 }} />
+                                        </LineChart>
                                     </ResponsiveContainer>
+                                ) : (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                                        <Activity size={32} className="opacity-20" />
+                                        <p className="text-xs font-bold uppercase tracking-widest">No symptom data recorded</p>
+                                        <p className="text-[10px]">Import a CSV or PDF to see trends</p>
+                                    </div>
                                 )}
                             </div>
                         </div>

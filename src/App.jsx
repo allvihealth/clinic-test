@@ -9,6 +9,8 @@ import PatientProfile from './components/PatientProfile';
 import UserPortal from './components/UserPortal';
 import RegisterPage from './components/RegisterPage';
 import ClinicalSummary from './components/ClinicalSummary';
+import IntakeForm from './components/IntakeForm';
+import { LogIn } from 'lucide-react';
 
 // Simple wrapper for the Dashboard to extract the ID from URL
 const DashboardWrapper = () => {
@@ -39,7 +41,9 @@ function App() {
       <main style={{ padding: '20px' }}>
         <Routes>
           {/* Public Access to All Routes */}
-          <Route path="/" element={<Phase1Upload />} />
+          <Route path="/" element={<UserPortal />} />
+          <Route path="/intake" element={<IntakeForm />} />
+
           <Route path="/phase1upload" element={<Phase1Upload />} />
           <Route path="/register" element={<RegisterPage />}/>
           <Route path="/login" element={<UserPortal />} />

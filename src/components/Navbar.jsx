@@ -4,7 +4,7 @@ import { Upload, Users, Menu, X, Calendar, Send, Loader2, LogIn } from 'lucide-r
 import axios from 'axios';
 import allvi_logo from "../assets/allvi_logo.png";
 
-const Navbar = ({ patientId }) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notes, setNotes] = useState('');
@@ -27,6 +27,7 @@ const Navbar = ({ patientId }) => {
   });
 
   const handleAppointmentSubmit = async () => {
+    let patientId = "ALLVI-2784"
     if (!patientId) return alert("Please select a patient first.");
     setSending(true);
     try {
@@ -92,6 +93,7 @@ const Navbar = ({ patientId }) => {
                 <div style={styles.loginIconBtn}>
                     Register
                 </div>
+
             </NavLink>
           </div>
         </div>
