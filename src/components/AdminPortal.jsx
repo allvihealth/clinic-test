@@ -10,9 +10,8 @@ const AdminPortal = () => {
     const navigate = useNavigate();
 
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000' 
-        : 'https://allvibackend.onrender.com';
-
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
     const fetchPatients = async () => {
         try {
             const res = await axios.get(`${baseURL}/api/patient/admin/patients`);

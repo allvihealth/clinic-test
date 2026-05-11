@@ -28,17 +28,17 @@ const IntakeForm = () => {
           for (const key in payload) {
             const field = payload[key];
             if (field?.type === 'FILE_UPLOAD' || key === 'question_jBDMVE') {
-               const val = field?.value || field;
-               if (val && (typeof val === 'string' || (Array.isArray(val) && val.length > 0))) {
-                 fileFound = true;
-                 break;
-               }
+              const val = field?.value || field;
+              if (val && (typeof val === 'string' || (Array.isArray(val) && val.length > 0))) {
+                fileFound = true;
+                break;
+              }
             }
           }
 
           if (!fileFound) {
             console.log("⏳ PDF link not ready in this event. Waiting for next message...");
-            return; 
+            return;
           }
 
           if (processingRef.current) return;
@@ -47,8 +47,7 @@ const IntakeForm = () => {
 
           const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://127.0.0.1:5000'
-            : 'https://allvibackend.onrender.com';
-            
+            : import.meta.env.VITE_SERVER_URL;
           const n8nWebhookURL = 'https://allvi.app.n8n.cloud/webhook/b3cbf8a4-0e20-4399-8f3a-3ea24c0ecbfc/webhook';
 
           // Small delay (2s) to ensure S3/Tally processing is complete before Backend tries to download
@@ -93,9 +92,9 @@ const IntakeForm = () => {
             <p className="text-gray-500 mt-3">Allvi AI is standardizing your lab results.</p>
           </div>
         ) : (
-          <iframe 
-            src="https://tally.so/embed/zxYlVZ?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&formEventsForwarding=1" 
-            width="100%" height="750" frameBorder="0" title="Intake Form" 
+          <iframe
+            src="https://tally.so/embed/zxYlVZ?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1&formEventsForwarding=1"
+            width="100%" height="750" frameBorder="0" title="Intake Form"
           />
         )}
       </div>

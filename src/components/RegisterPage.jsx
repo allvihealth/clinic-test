@@ -63,9 +63,9 @@ const RegisterPage = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000' 
-        : 'https://allvibackend.onrender.com';
+     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
 
     try {
       // 1. Create FormData to handle the file upload alongside text

@@ -16,9 +16,9 @@ const UserPortal = () => {
         const cleanId = searchId.trim().toUpperCase();
         if (!cleanId) return;
          
-         const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000' 
-        : 'https://allvibackend.onrender.com';
+          const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
 
 
         setLoading(true);

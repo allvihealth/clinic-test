@@ -9,9 +9,9 @@ const Navbar = () => {
   const [notes, setNotes] = useState('');
   const [sending, setSending] = useState(false);
 
-  const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://127.0.0.1:5000'
-    : 'https://allvibackend.onrender.com';
+   const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
 
   // Base styles for navigation links
   const navLinkStyle = ({ isActive }) => ({

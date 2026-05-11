@@ -41,10 +41,9 @@ const Phase1Review = () => {
     
     setSaving(true);
     try {
-      const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+       const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : 'https://allvibackend.onrender.com';
-
+        : import.meta.env.VITE_SERVER_URL;
       // Important: Sending the full nested objects (including units/ranges) to the backend
       const response = await axios.post(`${baseURL}/api/patient/confirm-results`, {
         patientId: allviId,

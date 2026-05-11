@@ -12,8 +12,8 @@ const PatientProfile = () => {
     const [loading, setLoading] = useState(true);
 
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000' 
-        : 'https://allvibackend.onrender.com';
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
 
     useEffect(() => {
         const fetchHistory = async () => {

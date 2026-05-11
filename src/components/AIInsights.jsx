@@ -12,10 +12,10 @@ const AIInsights = ({ patientId, intake }) => {
         const fetchInsights = async () => {
             try {
                 setLoading(true);
-                const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                    ? 'http://127.0.0.1:5000' 
-                    : 'https://allvibackend.onrender.com';
-                
+                const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://127.0.0.1:5000'
+                    : import.meta.env.VITE_SERVER_URL;
+
                 const res = await axios.get(`${baseURL}/api/patient/insights/${patientId}`);
 
                 if (res.data.success && res.data.insights) {

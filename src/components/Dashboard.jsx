@@ -743,10 +743,11 @@ const Dashboard = ({ patientId }) => {
 
     const dashboardRef = useRef(null);
 
-    const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : 'https://allvibackend.onrender.com';
+        : import.meta.env.VITE_SERVER_URL;
 
+    console.log(baseURL)
     useEffect(() => {
         setIsMounted(true);
         fetchDashboardData();

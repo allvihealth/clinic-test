@@ -15,9 +15,9 @@ const ClinicalSummary = () => {
     const [specialistNotes, setSpecialistNotes] = useState('');
     const [isSending, setIsSending] = useState(false);
 
-    const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : 'https://allvibackend.onrender.com';
+        : import.meta.env.VITE_SERVER_URL;
 
     const handlePrint = () => {
         window.print();

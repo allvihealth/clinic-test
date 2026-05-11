@@ -49,8 +49,8 @@ const Phase1Upload = () => {
 
     try {
       const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://127.0.0.1:5000' 
-        : 'https://allvibackend.onrender.com';
+        ? 'http://127.0.0.1:5000'
+        : import.meta.env.VITE_SERVER_URL;
 
       const response = await axios.post(`${baseURL}/api/patient/process-report`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
