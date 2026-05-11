@@ -860,6 +860,7 @@ const Dashboard = ({ patientId }) => {
 
                     if (result.success) {
                         alert("Symptoms imported successfully!");
+                         await  fetchDashboardData()
                         // Trigger a re-fetch of your 'data.symptoms' here
                     }
                 } catch (error) {
