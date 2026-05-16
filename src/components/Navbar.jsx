@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Upload, Users, Menu, X, Calendar, Send, Loader2, LogIn } from 'lucide-react';
+import { Upload, Users, Menu, X, Calendar, Send, Loader2, LogIn, ClipboardList } from 'lucide-react';
 import axios from 'axios';
 
 const Navbar = () => {
@@ -9,7 +9,7 @@ const Navbar = () => {
   const [notes, setNotes] = useState('');
   const [sending, setSending] = useState(false);
 
-   const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
         : import.meta.env.VITE_SERVER_URL;
 
@@ -86,6 +86,10 @@ const Navbar = () => {
           <div style={styles.navGroup}>
             <NavLink to="/phase1upload" style={navLinkStyle}><Upload size={16} /> Upload</NavLink>
             <NavLink to="/admin" style={navLinkStyle}><Users size={16} /> AdminPortal</NavLink>
+            
+            {/* NEW CLINICAL TEST NAVLINK - Navigates to Clinical Login Page */}
+            <NavLink to="/clinical-login" style={navLinkStyle}><ClipboardList size={16} /> ClinicalTest</NavLink>
+            
             <NavLink to="/login" style={navLinkStyle}> <LogIn size={16} />Login</NavLink>
             
             {/* REGISTER NAVLINK - Desktop */}
@@ -123,6 +127,12 @@ const Navbar = () => {
             <NavLink to="/admin" style={navLinkStyle} onClick={() => setIsOpen(false)}>
                 <Users size={18} /> Admin Portal
             </NavLink>
+            
+            {/* NEW CLINICAL TEST NAVLINK - Mobile */}
+            <NavLink to="/clinical-login" style={navLinkStyle} onClick={() => setIsOpen(false)}>
+                <ClipboardList size={18} /> Clinical Test
+            </NavLink>
+            
             <NavLink to="/login" style={navLinkStyle} onClick={() => setIsOpen(false)}>
                 <LogIn size={18} /> Login
             </NavLink>

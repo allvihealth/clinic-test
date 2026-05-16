@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Routes, Route, useParams, useNavigate } from 'react-router-dom';
+import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Phase1Upload from './components/Phase1Upload';
 import Phase1Review from './components/Phase1Review';
@@ -10,33 +10,47 @@ import UserPortal from './components/UserPortal';
 import RegisterPage from './components/RegisterPage';
 import ClinicalSummary from './components/ClinicalSummary';
 import IntakeForm from './components/IntakeForm';
+import ClinicalLoginPage from './components/ClinicalLoginPage'; 
+import ClinicDashboard from './components/ClinicDashboard'; 
 import { LogIn } from 'lucide-react';
 
-// Simple wrapper for the Dashboard to extract the ID from URL
+// Simple wrapper for the Patient Dashboard to extract the ID from URL
 const DashboardWrapper = () => {
     const { id } = useParams();
-    return <Dashboard patientId={id} />;
+    return <Dashboard/>;
 };
 
 function App() {
   const navigate = useNavigate();
+  const location = useLocation(); // Hook to listen to path changes
 
   // --- OPTIONAL SESSION REDIRECT ---
-  // If a user is already "logged in", we still send them to their profile 
-  // if they try to visit the login page manually.
   useEffect(() => {
     const savedId = localStorage.getItem('allvi_auth_token');
-    const publicPaths = ['/login', '/register'];
+    const isClinicSession = localStorage.getItem('allvi_clinic_token');
+    const publicPaths = ['/login', '/register', '/clinical-login'];
     
+    // If authenticated as a clinic admin, keep them pinned to the clinical dashboard
+    if (isClinicSession && window.location.pathname === '/clinical-login') {
+      navigate('/clinic-dashboard');
+      return;
+    }
+
+    // Standard patient portal routing redirect
     if (savedId && publicPaths.includes(window.location.pathname)) {
         navigate(`/profile/${savedId}`);
     }
   }, [navigate]);
 
+  // Determine if the main navbar should be hidden
+  const hideNavbarPaths = ['/clinic-dashboard'];
+  const shouldShowNavbar = !hideNavbarPaths.includes(location.pathname);
+
   return (
     <div className="app-container" style={{ minHeight: '100vh', backgroundColor: "#F7F1E8" }}>
       
-      <Navbar />
+      {/* Conditionally render Navbar based on current pathname */}
+      {shouldShowNavbar && <Navbar />}
 
       <main style={{ padding: '20px' }}>
         <Routes>
@@ -48,12 +62,20 @@ function App() {
           <Route path="/register" element={<RegisterPage />}/>
           <Route path="/login" element={<UserPortal />} />
           
-          {/* Protected checks removed: Users can now access these directly */}
+          {/* Clinical Access Routes */}
+          <Route path="/clinical-login" element={<ClinicalLoginPage />} />
+          {/* Clinical Executive Dashboard */}
+          <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
+          
+          {/* Standard Patient Application Flow Routes */}
           <Route path="/review" element={<Phase1Review />} />
+          <Route path="/dashboard" element={<DashboardWrapper />} />
           <Route path="/dashboard/:id" element={<DashboardWrapper />} />
+          
           <Route path="/profile/:patientId" element={<PatientProfile />} />
           <Route path="/clinical-summary/:patientId" element={<ClinicalSummary/>} />
-          {/* Admin Route */}
+          
+          {/* General Admin Portal Route */}
           <Route path="/admin" element={<AdminPortal />} />
           
           {/* 404 Route */}
