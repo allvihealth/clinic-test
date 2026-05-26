@@ -7,7 +7,7 @@ import Dashboard from './components/Dashboard';
 import AdminPortal from './components/AdminPortal'; 
 import PatientProfile from './components/PatientProfile';
 import UserPortal from './components/UserPortal';
-import RegisterPage from './components/RegisterPage';
+import OnboardingPage from './components/OnboardingPage';
 import ClinicalSummary from './components/ClinicalSummary';
 import IntakeForm from './components/IntakeForm';
 import ClinicalLoginPage from './components/ClinicalLoginPage'; 
@@ -28,7 +28,7 @@ function App() {
   useEffect(() => {
     const savedId = localStorage.getItem('allvi_auth_token');
     const isClinicSession = localStorage.getItem('allvi_clinic_token');
-    const publicPaths = ['/login', '/register', '/clinical-login'];
+    const publicPaths = ['/login', '/onboarding', '/clinical-login'];
     
     // If authenticated as a clinic admin, keep them pinned to the clinical dashboard
     if (isClinicSession && window.location.pathname === '/clinical-login') {
@@ -59,8 +59,9 @@ function App() {
           <Route path="/intake" element={<IntakeForm />} />
 
           <Route path="/phase1upload" element={<Phase1Upload />} />
-          <Route path="/register" element={<RegisterPage />}/>
+          <Route path="/onboarding" element={<OnboardingPage />}/>
           <Route path="/login" element={<UserPortal />} />
+          <Route path="/register" element={<UserPortal />} />
           
           {/* Clinical Access Routes */}
           <Route path="/clinical-login" element={<ClinicalLoginPage />} />

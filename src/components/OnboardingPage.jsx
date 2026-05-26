@@ -1,35 +1,25 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from "axios";
 
-const RegisterPage = () => {
+const OnboardingPage = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 9;
   
-  // Loading state to disable the button while saving to backend
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Centralized state for the form data
+  // Centralized state configuration (Email input completely stripped to preserve unique signup references)
   const [formData, setFormData] = useState({
-    // Section 1
     conditions: [], conditionOther: '', diagnosedWhen: '', diagnosedBy: [],
-    // Section 2
     symptomsEnergy: [], symptomsDigestion: [], symptomsMental: [], symptomsSleep: [], symptomsOther: [], symptomsOtherText: '', worstSymptoms: '',
-    // Section 3
     takingMedication: '', medicationDetails: '', medicationDuration: '', supplements: '',
-    // Section 4
     lastLabs: '', labFile: null, additionalLabs: [],
-    // Section 5
     providerSatisfaction: '', upcomingAppt: '', apptDate: '',
-    // Section 6
     dietaryChanges: [], dietOther: '', stressLevel: '', sleepQuality: '', exercise: '', exerciseType: '',
-    // Section 7
     topGoals: '', topHelp: '', topHelpOther: '', anythingElse: '',
-    // Section 8
     commPlatform: [], commPlatformOther: '', commTime: '',
-    // Section 9
-    fullName: '', email: '', phone: '', dob: '', gender: '', genderOther: '', location: ''
+    fullName: '', phone: '', dob: '', gender: '', genderOther: '', location: ''
   });
 
   const handleChange = (e) => {
@@ -58,22 +48,24 @@ const RegisterPage = () => {
     window.scrollTo(0, 0);
   };
 
-  // --- UPGRADED SUBMIT FUNCTION FOR REVIEW ROUTING ---
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
     
-     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
         : import.meta.env.VITE_SERVER_URL;
 
+    // Retrieve the target identification token generated dynamically during signup
+    const activeRegistrationTokenId = localStorage.getItem('allvi_id');
+
     try {
-      // 1. Create FormData to handle the file upload alongside text
       const payload = new FormData();
 
-      // 2. Append standard text fields
+      // Pass the matching profile row token down to the update script engine
+      payload.append('allvi_id', activeRegistrationTokenId);
       payload.append('fullName', formData.fullName);
-      payload.append('email', formData.email);
+      payload.append('phone', formData.phone);
       payload.append('dob', formData.dob);
       payload.append('gender', formData.gender);
       payload.append('location', formData.location);
@@ -83,7 +75,6 @@ const RegisterPage = () => {
       payload.append('conditionOther', formData.conditionOther);
       payload.append('symptomsOtherText', formData.symptomsOtherText);
 
-      // 3. Stringify array fields so the backend can parse them safely
       payload.append('conditions', JSON.stringify(formData.conditions));
       payload.append('symptomsEnergy', JSON.stringify(formData.symptomsEnergy));
       payload.append('symptomsDigestion', JSON.stringify(formData.symptomsDigestion));
@@ -91,55 +82,44 @@ const RegisterPage = () => {
       payload.append('symptomsSleep', JSON.stringify(formData.symptomsSleep));
       payload.append('symptomsOther', JSON.stringify(formData.symptomsOther));
 
-      // 4. Append the uploaded file if it exists
       if (formData.labFile) {
         payload.append('labReport', formData.labFile);
       }
 
-      // 5. Send using Axios to handle multipart form data
       const response = await axios.post(`${baseURL}/api/patient/submit-intake`, payload, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       if (response.data.success) {
-        
-        // ── NEW ROUTING LOGIC TO REVIEW SCREEN ──
-        // If a file was uploaded AND the AI parsed it successfully, go to Review Page
         if (formData.labFile && response.data.parsedData) {
-            
-            // Calculate age to pass to the Review UI
-            let calcAge = '';
-            if (formData.dob) {
-                const diff = Date.now() - new Date(formData.dob).getTime();
-                calcAge = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+          let calcAge = '';
+          if (formData.dob) {
+            const diff = Date.now() - new Date(formData.dob).getTime();
+            calcAge = Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+          }
+
+          navigate('/review', { 
+            state: {
+              parsedData: response.data.parsedData,
+              allviId: response.data.allvi_id,
+              age: calcAge,
+              gender: formData.gender
             }
-
-            // Navigate to Review Page and pass the data exactly how Phase1Review expects it
-            navigate('/review', { 
-                state: {
-                    parsedData: response.data.parsedData,
-                    allviId: response.data.allvi_id,
-                    age: calcAge,
-                    gender: formData.gender
-                }
-            });
+          });
         } else {
-            // If no file was uploaded, or AI extraction failed, skip review and go to Dashboard
-            navigate(`/dashboard/${response.data.allvi_id}`);
+          navigate(`/dashboard/${response.data.allvi_id}`);
         }
-
       } else {
-        alert(`Error submitting form: ${response.data.error}`);
+        alert(`Error submitting form data layout: ${response.data.error}`);
       }
     } catch (error) {
-      console.error("Network Error:", error);
-      alert(`Submission failed: ${error.message || "Could not reach server"}`);
+      console.error("Network Link Connection Disruption:", error);
+      alert(`Submission sequence aborted: ${error.message || "Endpoint connection failed."}`);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // --- REUSABLE UI COMPONENTS ---
   const SectionHeader = ({ title }) => (
     <h2 className="text-2xl font-bold text-[#0F4C5C] mb-6 pb-2 border-b-2 border-gray-100">{title}</h2>
   );
@@ -166,7 +146,6 @@ const RegisterPage = () => {
             />
             <span className="text-gray-700 font-medium">{opt}</span>
           </label>
-          {/* Conditional Input for "Other" */}
           {otherOption === opt && formData[category].includes(opt) && (
             <div className="ml-8 mt-2 transition-all duration-300 ease-in-out">
               <textarea
@@ -200,7 +179,6 @@ const RegisterPage = () => {
             />
             <span className="text-gray-700 font-medium">{opt}</span>
           </label>
-          {/* Conditional Input for "Other" */}
           {otherOption === opt && formData[name] === opt && (
             <div className="ml-8 mt-2 transition-all duration-300 ease-in-out">
               {otherType === "date" ? (
@@ -227,7 +205,7 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-[#f7f1e8] py-8 px-4 sm:px-6 lg:px-8 font-sans text-[#37352F]">
       <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm p-6 md:p-10">
         
-        {/* Header & Progress Bar */}
+        {/* Header Block Display Progress Indicator */}
         <div className="text-center mb-8">
           <img src="https://storage.tally.so/1f4d5e7c-2b0b-481c-a6b0-241d82e60995/allvi-logo-400x400-btter-text-copy-2.png" alt="Allvi Logo" className="w-20 h-20 mx-auto rounded-full object-cover mb-4" />
           <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 mb-6">Allvi — Intake Form</h1>
@@ -293,12 +271,7 @@ const RegisterPage = () => {
               <CheckboxGroup category="symptomsSleep" options={["Difficulty falling asleep", "Difficulty staying asleep", "Waking up tired even after enough sleep"]} />
 
               <h3 className="font-semibold text-gray-700 mt-4 mb-2">Other:</h3>
-              <CheckboxGroup 
-                category="symptomsOther" 
-                options={["Heart palpitations", "Menstrual irregularities", "Low libido", "Other (please specify)"]} 
-                otherOption="Other (please specify)"
-                otherStateName="symptomsOtherText"
-              />
+              <CheckboxGroup category="symptomsOther" options={["Heart palpitations", "Menstrual irregularities", "Low libido", "Other (please specify)"]} otherOption="Other (please specify)" otherStateName="symptomsOtherText" />
 
               <div className="mt-8">
                 <Label text="Which 2-3 symptoms bother you the most right now?" required />
@@ -311,13 +284,11 @@ const RegisterPage = () => {
           {currentStep === 3 && (
             <div className="animate-fade-in">
               <SectionHeader title="Section 3: Current Treatment" />
-              
               <div className="mb-6">
                 <Label text="Are you currently taking thyroid medication?" required />
                 <RadioGroup name="takingMedication" options={["Yes", "No", "I was prescribed medication but haven't started yet"]} />
               </div>
               
-              {/* Conditional Medication Details block */}
               {formData.takingMedication === "Yes" && (
                 <div className="mb-6 animate-fade-in">
                   <Label text="If yes, what medication and dosage?" />
@@ -325,7 +296,6 @@ const RegisterPage = () => {
                 </div>
               )}
               
-              {/* Always visible Dropdown */}
               <div className="mb-8">
                 <Label text="How long have you been on this medication?" required />
                 <select name="medicationDuration" value={formData.medicationDuration} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-md outline-none bg-white focus:ring-2 focus:ring-[#0F4C5C]" required>
@@ -340,11 +310,7 @@ const RegisterPage = () => {
               </div>
 
               <div className="mb-6 border-t border-gray-100 pt-6">
-                <Label 
-                  text="Are you taking any supplements?" 
-                  subtext="List any supplements you currently take, e.g., Vitamin D, Selenium, B12, Iron, etc." 
-                  required 
-                />
+                <Label text="Are you taking any supplements?" subtext="List any supplements you currently take, e.g., Vitamin D, Selenium, B12, Iron, etc." required />
                 <textarea name="supplements" value={formData.supplements} onChange={handleChange} rows="3" className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C] shadow-sm" required></textarea>
               </div>
             </div>
@@ -366,10 +332,7 @@ const RegisterPage = () => {
                 </select>
               </div>
               <div className="mb-6">
-                <Label 
-                  text="Please upload your most recent lab results (file upload)" 
-                  subtext="If you have trouble uploading, email them to support@alliamd.com" 
-                />
+                <Label text="Please upload your most recent lab results (file upload)" subtext="If you have trouble uploading, email them to support@alliamd.com" />
                 <input type="file" onChange={(e) => setFormData({...formData, labFile: e.target.files[0]})} className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-[#0F4C5C] hover:file:bg-blue-100 cursor-pointer" />
               </div>
               <div className="mb-6">
@@ -387,27 +350,14 @@ const RegisterPage = () => {
                 <Label text="How satisfied are you with your current thyroid care provider?" required />
                 <RadioGroup name="providerSatisfaction" options={["1 - Very unsatisfied (feel dismissed, not listened to)", "2 - Unsatisfied", "3 - Neutral", "4 - Satisfied", "5 - Very satisfied"]} />
               </div>
-              
               <div className="mb-8">
                 <Label text="Do you have any upcoming doctor appointments related to your thyroid?" required />
-                <RadioGroup 
-                  name="upcomingAppt" 
-                  options={["Yes (please share approximate date)", "No", "Not yet scheduled but planning to"]} 
-                />
+                <RadioGroup name="upcomingAppt" options={["Yes (please share approximate date)", "No", "Not yet scheduled but planning to"]} />
               </div>
-
-              {/* Always visible standalone field */}
               {formData.upcomingAppt === "Yes (please share approximate date)" && (
                 <div className="mb-6 animate-fade-in">
                   <Label text="Please share approximate date" />
-                  <input 
-                    type="date" 
-                    name="apptDate" 
-                    value={formData.apptDate} 
-                    onChange={handleChange} 
-                    className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C] shadow-sm max-w-md" 
-                    required 
-                  />
+                  <input type="date" name="apptDate" value={formData.apptDate} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C] shadow-sm max-w-md" required />
                 </div>
               )}
             </div>
@@ -419,12 +369,7 @@ const RegisterPage = () => {
                <SectionHeader title="Section 6: Lifestyle" />
                <div className="mb-6">
                 <Label text="Have you made any dietary changes because of your thyroid condition?" required />
-                <CheckboxGroup 
-                  category="dietaryChanges" 
-                  options={["Gluten-free", "Dairy-free", "Soy-free", "Sugar-free / reduced sugar", "AIP (Autoimmune Protocol)", "Paleo", "No dietary changes yet", "Other (please specify)"]} 
-                  otherOption="Other (please specify)"
-                  otherStateName="dietOther"
-                />
+                <CheckboxGroup category="dietaryChanges" options={["Gluten-free", "Dairy-free", "Soy-free", "Sugar-free / reduced sugar", "AIP (Autoimmune Protocol)", "Paleo", "No dietary changes yet", "Other (please specify)"]} otherOption="Other (please specify)" otherStateName="dietOther" />
               </div>
               <div className="mb-6">
                 <Label text="How would you describe your current stress level? (scale 1-5)" required />
@@ -436,23 +381,12 @@ const RegisterPage = () => {
               </div>
               <div className="mb-8">
                 <Label text="Do you currently exercise?" required />
-                <RadioGroup 
-                  name="exercise" 
-                  options={["Yes, regularly (3+ times per week)", "Yes, occasionally (1-2 times per week)", "Rarely", "No"]} 
-                />
+                <RadioGroup name="exercise" options={["Yes, regularly (3+ times per week)", "Yes, occasionally (1-2 times per week)", "Rarely", "No"]} />
               </div>
-              
-              {/* Always visible standalone field */}
               {(formData.exercise === "Yes, regularly (3+ times per week)" || formData.exercise === "Yes, occasionally (1-2 times per week)") && (
                 <div className="mb-6 animate-fade-in">
                   <Label text="If yes, what type of exercise?" />
-                  <textarea 
-                    name="exerciseType" 
-                    value={formData.exerciseType} 
-                    onChange={handleChange} 
-                    rows="3" 
-                    className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C] shadow-sm"
-                  ></textarea>
+                  <textarea name="exerciseType" value={formData.exerciseType} onChange={handleChange} rows="3" className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C] shadow-sm"></textarea>
                 </div>
               )}
             </div>
@@ -468,12 +402,7 @@ const RegisterPage = () => {
               </div>
               <div className="mb-6">
                 <Label text="What's the #1 thing you want help with right now?" required />
-                <RadioGroup 
-                  name="topHelp" 
-                  options={["Understanding my labs and diagnosis", "Finding a better doctor", "Managing symptoms through lifestyle", "Figuring out the right diet for me", "Tracking my symptoms and seeing patterns", "Having someone to talk to who understands", "Other (please specify)"]} 
-                  otherOption="Other (please specify)"
-                  otherStateName="topHelpOther"
-                />
+                <RadioGroup name="topHelp" options={["Understanding my labs and diagnosis", "Finding a better doctor", "Managing symptoms through lifestyle", "Figuring out the right diet for me", "Tracking my symptoms and seeing patterns", "Having someone to talk to who understands", "Other (please specify)"]} otherOption="Other (please specify)" otherStateName="topHelpOther" />
               </div>
               <div className="mb-6">
                 <Label text="Is there anything else you'd like us to know?" />
@@ -488,12 +417,7 @@ const RegisterPage = () => {
               <SectionHeader title="Section 8: Communication Preferences" />
               <div className="mb-6">
                 <Label text="Which platform would you prefer for text based check-ins?" required />
-                <CheckboxGroup 
-                  category="commPlatform" 
-                  options={["SMS", "Whatsapp", "Signal", "Other (please specify)"]} 
-                  otherOption="Other (please specify)"
-                  otherStateName="commPlatformOther"
-                />
+                <CheckboxGroup category="commPlatform" options={["SMS", "Whatsapp", "Signal", "Other (please specify)"]} otherOption="Other (please specify)" otherStateName="commPlatformOther" />
               </div>
               <div className="mb-6">
                 <Label text="What time of day do you prefer check-in messages?" required />
@@ -502,20 +426,16 @@ const RegisterPage = () => {
             </div>
           )}
 
-          {/* STEP 9: Basics */}
-          {currentStep === 9 && (
+          {/* STEP 9: Basics Layout */}
+          {currentStep === totalSteps && (
             <div className="animate-fade-in">
               <SectionHeader title="Section 9: Basics" />
-              <p className="text-gray-600 mb-6">We have some of this from your onboarding call, but want to make sure we have it documented.</p>
+              <p className="text-gray-600 mb-6">Confirm your profile configurations below to complete enrollment.</p>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label text="Full name" required />
                   <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C]" required />
-                </div>
-                <div>
-                  <Label text="Email address" required />
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C]" required />
                 </div>
                 <div>
                   <Label text="Phone number (for check-ins)" required />
@@ -538,11 +458,7 @@ const RegisterPage = () => {
               </div>
 
               <div className="mb-8">
-                <Label 
-                  text="Location (City, State/Country)" 
-                  subtext="Helps with provider recommendations"
-                  required 
-                />
+                <Label text="Location (City, State/Country)" subtext="Helps with provider recommendations" required />
                 <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full p-3 border border-gray-300 rounded-md outline-none focus:ring-2 focus:ring-[#0F4C5C]" required />
               </div>
             </div>
@@ -550,39 +466,26 @@ const RegisterPage = () => {
 
           {/* Navigation Buttons */}
           <div className="pt-6 border-t border-gray-200 flex flex-col-reverse sm:flex-row justify-between gap-4 mt-8">
-            <button 
-              type="button" 
-              onClick={prevStep}
-              className={`px-6 py-3 font-semibold rounded-lg border-2 border-gray-300 text-gray-600 hover:bg-gray-100 transition duration-200 ${currentStep === 1 ? 'invisible' : 'visible'}`}
-            >
+            <button type="button" onClick={prevStep} className={`px-6 py-3 font-semibold rounded-lg border-2 border-gray-300 text-gray-600 hover:bg-gray-100 transition duration-200 ${currentStep === 1 ? 'invisible' : 'visible'}`}>
               Back
             </button>
 
             {currentStep < totalSteps ? (
-              <button 
-                type="button" 
-                onClick={nextStep}
-                className="px-8 py-3 bg-[#0F4C5C] text-white font-semibold rounded-lg shadow hover:bg-[#0c3d49] transition duration-200 flex items-center justify-center gap-2 w-full sm:w-auto"
-              >
+              <button type="button" onClick={nextStep} className="px-8 py-3 bg-[#0F4C5C] text-white font-semibold rounded-lg shadow hover:bg-[#0c3d49] transition duration-200 flex items-center justify-center gap-2 w-full sm:w-auto">
                 Next
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
               </button>
             ) : (
-              <button 
-                type="submit" 
-                disabled={isSubmitting}
-                className={`px-8 py-3 font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center gap-2 w-full sm:w-auto ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0F4C5C] text-white hover:bg-[#0c3d49]'}`}
-              >
+              <button type="submit" disabled={isSubmitting} className={`px-8 py-3 font-semibold rounded-lg shadow transition duration-200 flex items-center justify-center gap-2 w-full sm:w-auto ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#0F4C5C] text-white hover:bg-[#0c3d49]'}`}>
                 {isSubmitting ? 'Submitting...' : 'Submit Intake Form'}
                 {!isSubmitting && <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>}
               </button>
             )}
           </div>
-
         </form>
       </div>
     </div>
   );
 };
 
-export default RegisterPage;
+export default OnboardingPage;

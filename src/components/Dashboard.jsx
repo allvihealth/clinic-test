@@ -4,20 +4,19 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import axios from 'axios';
 import Papa from 'papaparse';
 import {
-    Activity, Printer, FileUp, Shield, Clock, UserCheck, Info,
-    Calendar, Send, X, Loader2, FlaskConical, Search, ChevronDown,
-    ChevronUp, AlertTriangle, ClipboardList, FilePlus, CheckCircle2, FileText
+    Activity, FileUp, Info, Calendar, Send, X, Loader2, FlaskConical, Search, 
+    ChevronDown, ChevronUp, AlertTriangle, ClipboardList, FilePlus, CheckCircle2, 
+    FileText, LayoutDashboard, CheckSquare, BarChart2, BookOpen, MessageSquare, PhoneCall, Printer
 } from 'lucide-react';
 import AIInsights from './AIInsights';
 
 // ─── LAB MARKER REGISTRY ───────────────────────────────────────────────────────
-
 const MARKER_REGISTRY = {
     thyroid: {
         label: 'Thyroid',
         icon: '⊕',
         color: '#0F4C5C',
-        accent: '#d1fae5',
+        accent: '#E8F4F7',
         markers: {
             tsh: { label: 'TSH', unit: 'mIU/L', range: [0.4, 4.0], optimal: [0.5, 2.5], note: 'Optimal for fertility: 0.5–2.5' },
             free_t3: { label: 'Free T3', unit: 'pg/mL', range: [2.3, 4.2], optimal: [3.0, 4.2], note: null },
@@ -31,8 +30,8 @@ const MARKER_REGISTRY = {
     metabolic: {
         label: 'Metabolic / Insulin',
         icon: '◈',
-        color: '#92400e',
-        accent: '#fef3c7',
+        color: '#C97B2E',
+        accent: '#FDF3E7',
         markers: {
             fasting_glucose: { label: 'Fasting Glucose', unit: 'mg/dL', range: [70, 99], optimal: [72, 90], note: 'Prediabetes: 100–125' },
             fasting_insulin: { label: 'Fasting Insulin', unit: 'µIU/mL', range: [2, 10], optimal: [2, 7], note: 'Optimal <7 for PCOS' },
@@ -71,8 +70,8 @@ const MARKER_REGISTRY = {
     inflammatory: {
         label: 'Inflammatory',
         icon: '◆',
-        color: '#dc2626',
-        accent: '#fee2e2',
+        color: '#2D6A4F',
+        accent: '#EAF5EE',
         markers: {
             crp: { label: 'CRP (hs-CRP)', unit: 'mg/L', range: [0, 1.0], optimal: [0, 0.5], note: '<1 low risk; 1–3 moderate; >3 high' },
             ferritin: { label: 'Ferritin', unit: 'ng/mL', range: [12, 150], optimal: [50, 100], note: 'Optimal for women: 50–100' },
@@ -101,7 +100,6 @@ const GOAL_MARKERS = {
 };
 
 // ─── TRAFFIC LIGHT SCORING ─────────────────────────────────────────────────────
-
 function getTrafficLight(value, def) {
     if (value === undefined || value === null || value === '') return 'missing';
     const v = parseFloat(value);
@@ -116,10 +114,10 @@ function getTrafficLight(value, def) {
 }
 
 const TRAFFIC_CFG = {
-    green: { bg: '#dcfce7', text: '#15803d', border: '#86efac', dot: '#22c55e', label: 'OPTIMAL', emoji: '🟢' },
-    amber: { bg: '#fef9c3', text: '#92400e', border: '#fde68a', dot: '#f59e0b', label: 'SUBOPTIMAL', emoji: '🟡' },
-    red: { bg: '#fee2e2', text: '#991b1b', border: '#fca5a5', dot: '#ef4444', label: 'OUT OF RANGE', emoji: '🔴' },
-    missing: { bg: '#f1f5f9', text: '#94a3b8', border: '#e2e8f0', dot: '#cbd5e1', label: 'NOT TESTED', emoji: '⚪' },
+    green: { bg: '#EAF5EE', text: '#2D6A4F', border: 'rgba(45,106,79,0.15)', dot: '#2D6A4F', label: 'OPTIMAL', emoji: '🟢' },
+    amber: { bg: '#FDF3E7', text: '#C97B2E', border: 'rgba(201,123,46,0.15)', dot: '#C97B2E', label: 'SUBOPTIMAL', emoji: '🟡' },
+    red: { bg: '#FDECEA', text: '#9B2226', border: 'rgba(155,34,38,0.15)', dot: '#9B2226', label: 'OUT OF RANGE', emoji: '🔴' },
+    missing: { bg: '#F7F1E8', text: '#6B7280', border: 'rgba(15,76,92,0.08)', dot: '#6B7280', label: 'NOT TESTED', emoji: '⚪' },
 };
 
 function getCategoryScore(cat, labData) {
@@ -132,7 +130,6 @@ function getCategoryScore(cat, labData) {
 }
 
 // ─── FERTILITY RISK FLAG ───────────────────────────────────────────────────────
-
 function computeFertilityRisk(labData) {
     const reasons = [];
     let riskLevel = 'LOW';
@@ -167,18 +164,6 @@ function computeFertilityRisk(labData) {
         riskLevel = 'ELEVATED';
     }
 
-    const tt = parseFloat(labData.total_testosterone);
-    if (!isNaN(tt) && tt > 70) {
-        reasons.push('Elevated total testosterone (>70 ng/dL) — androgen excess');
-        riskLevel = riskLevel === 'LOW' ? 'MODERATE' : 'ELEVATED';
-    }
-
-    const vitD = parseFloat(labData.vitamin_d);
-    if (!isNaN(vitD) && vitD < 20) {
-        reasons.push('Severe Vitamin D deficiency (<20 ng/mL)');
-        riskLevel = riskLevel === 'LOW' ? 'MODERATE' : riskLevel;
-    }
-
     return { riskLevel, reasons };
 }
 
@@ -187,25 +172,25 @@ const FertilityRiskBanner = ({ labData }) => {
     const [expanded, setExpanded] = useState(false);
 
     const cfg = {
-        LOW: { bg: '#f0fdf4', border: '#86efac', accent: '#15803d', badge: '#dcfce7', badgeText: '#15803d', icon: '🟢', label: 'LOW' },
-        MODERATE: { bg: '#fffbeb', border: '#fcd34d', accent: '#92400e', badge: '#fef9c3', badgeText: '#92400e', icon: '🟡', label: 'MODERATE' },
-        ELEVATED: { bg: '#fff1f2', border: '#fca5a5', accent: '#991b1b', badge: '#fee2e2', badgeText: '#991b1b', icon: '🔴', label: 'ELEVATED' },
+        LOW: { bg: '#EAF5EE', border: '#2D6A4F', accent: '#2D6A4F', icon: '🟢' },
+        MODERATE: { bg: '#FDF3E7', border: '#C97B2E', accent: '#C97B2E', icon: '🟡' },
+        ELEVATED: { bg: '#FDECEA', border: '#9B2226', accent: '#9B2226', icon: '🔴' },
     }[riskLevel];
 
     return (
         <div style={{
-            backgroundColor: cfg.bg, border: `1.5px solid ${cfg.border}`, borderRadius: '16px',
-            padding: '18px 20px', marginBottom: '24px',
+            backgroundColor: cfg.bg, borderLeft: `4px solid ${cfg.accent}`, borderRadius: '12px',
+            padding: '16px', marginBottom: '24px', boxShadow: '0 1px 3px rgba(15,76,92,0.08)'
         }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <span style={{ fontSize: '22px' }}>{cfg.icon}</span>
+                    <span style={{ fontSize: '20px' }}>{cfg.icon}</span>
                     <div>
-                        <p style={{ fontSize: '9px', fontWeight: 900, color: cfg.accent, letterSpacing: '0.18em', textTransform: 'uppercase', margin: '0 0 3px' }}>
+                        <p style={{ fontSize: '10px', fontWeight: 700, color: cfg.accent, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 2px' }}>
                             Ovulatory Risk Assessment
                         </p>
-                        <p style={{ fontSize: '18px', fontWeight: 900, color: cfg.accent, margin: 0, lineHeight: 1 }}>
-                            {riskLevel}
+                        <p style={{ fontFamily: "'Playfair Display', serif", fontSize: '20px', fontWeight: 600, color: '#1F2937', margin: 0 }}>
+                            {riskLevel} Risk Profile
                         </p>
                     </div>
                 </div>
@@ -213,65 +198,48 @@ const FertilityRiskBanner = ({ labData }) => {
                     <button
                         onClick={() => setExpanded(e => !e)}
                         style={{
-                            background: 'none', border: `1px solid ${cfg.border}`,
-                            borderRadius: '8px', padding: '5px 10px', cursor: 'pointer',
-                            fontSize: '9px', fontWeight: 800, color: cfg.accent,
-                            letterSpacing: '0.1em', textTransform: 'uppercase',
-                            display: 'flex', alignItems: 'center', gap: 5
+                            background: 'none', border: '1px solid rgba(15,76,92,0.15)',
+                            borderRadius: '6px', padding: '5px 12px', cursor: 'pointer',
+                            fontSize: '12px', fontWeight: 500, color: '#6B7280',
+                            display: 'flex', alignItems: 'center', gap: 5, fontFamily: 'inherit'
                         }}
                     >
-                        {reasons.length} signal{reasons.length !== 1 ? 's' : ''}
-                        {expanded ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
+                        {reasons.length} Signal{reasons.length !== 1 ? 's' : ''}
+                        {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                     </button>
                 )}
             </div>
 
             {expanded && reasons.length > 0 && (
-                <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6, paddingTop: 12, borderTop: '1px solid rgba(15,76,92,0.08)' }}>
                     {reasons.map((r, i) => (
                         <div key={i} style={{
-                            display: 'flex', alignItems: 'flex-start', gap: 8,
-                            backgroundColor: '#fff', borderRadius: '10px',
-                            padding: '8px 12px', border: `1px solid ${cfg.border}`
+                            display: 'flex', alignItems: 'center', gap: 10,
+                            backgroundColor: '#FFFFFF', borderRadius: '6px',
+                            padding: '10px 14px', border: '1px solid rgba(15,76,92,0.06)'
                         }}>
-                            <span style={{ color: cfg.accent, marginTop: 1, flexShrink: 0 }}>
-                                <AlertTriangle size={11} />
+                            <span style={{ color: cfg.accent, display: 'flex', flexShrink: 0 }}>
+                                <AlertTriangle size={14} />
                             </span>
-                            <span style={{ fontSize: '10px', fontWeight: 700, color: cfg.accent, lineHeight: 1.5 }}>{r}</span>
+                            <span style={{ fontSize: '13px', fontWeight: 500, color: '#1F2937' }}>{r}</span>
                         </div>
                     ))}
-                    <p style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 600, margin: '4px 0 0', fontStyle: 'italic' }}>
-                        This is a pattern-based signal, not a diagnosis. Please consult your clinician.
-                    </p>
                 </div>
-            )}
-            {riskLevel === 'LOW' && (
-                <p style={{ fontSize: '10px', fontWeight: 700, color: cfg.accent, margin: '10px 0 0' }}>
-                    No significant fertility risk signals detected from available markers.
-                </p>
             )}
         </div>
     );
 };
 
-// ─── CATEGORY SCORE SUMMARY ────────────────────────────────────────────────────
-
 const CategoryScoreSummary = ({ labData }) => {
     return (
-        <div style={{
-            backgroundColor: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0',
-            overflow: 'hidden', marginBottom: '24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
-        }}>
-            <div style={{
-                backgroundColor: '#0F4C5C', padding: '12px 18px',
-                display: 'flex', alignItems: 'center', gap: 8
-            }}>
-                <Activity size={13} color="#F7F1E8" />
-                <span style={{ fontSize: '10px', fontWeight: 900, color: '#F7F1E8', letterSpacing: '0.18em', textTransform: 'uppercase' }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden', marginBottom: '24px' }}>
+            <div style={{ backgroundColor: '#0F4C5C', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Activity size={15} color="#F7F1E8" />
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#F7F1E8', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                     Category Health Summary
                 </span>
             </div>
-            <div style={{ padding: '4px 0' }}>
+            <div style={{ padding: '8px 0' }}>
                 {Object.entries(MARKER_REGISTRY).map(([ck, cat]) => {
                     const score = getCategoryScore(cat, labData);
                     const cfg = TRAFFIC_CFG[score];
@@ -281,29 +249,18 @@ const CategoryScoreSummary = ({ labData }) => {
                     const total = Object.keys(cat.markers).length;
 
                     return (
-                        <div key={ck} style={{
-                            display: 'flex', alignItems: 'center', gap: 12, padding: '10px 18px',
-                            borderBottom: '1px solid #f8fafc',
-                        }}>
+                        <div key={ck} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 20px', borderBottom: '1px solid #EDE7DB' }} className="ai">
                             <span style={{
-                                width: 28, height: 28, borderRadius: '8px', backgroundColor: cat.accent,
-                                display: 'flex', alignItems: 'center', justifycontent: 'center',
-                                fontSize: '12px', color: cat.color, fontWeight: 900, flexShrink: 0
+                                width: 28, height: 28, borderRadius: '6px', backgroundColor: cat.accent,
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '13px', color: cat.color, fontWeight: 600, flexShrink: 0
                             }}>{cat.icon}</span>
-                            <span style={{ flex: 1, fontSize: '11px', fontWeight: 800, color: '#1e293b' }}>
-                                {cat.label}
-                            </span>
-                            <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 700, marginRight: 8 }}>
-                                {tested}/{total}
-                            </span>
-                            <span style={{ fontSize: '14px' }}>{cfg.emoji}</span>
+                            <span style={{ flex: 1, fontSize: '13px', fontWeight: 600, color: '#1F2937' }}>{cat.label}</span>
+                            <span style={{ fontSize: '12px', color: '#6B7280', fontWeight: 500, marginRight: 12 }}>{tested} / {total} Tested</span>
                             <span style={{
                                 backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}`,
-                                fontSize: '9px', fontWeight: 900, letterSpacing: '0.12em',
-                                padding: '3px 10px', borderRadius: '99px', minWidth: 90, textAlign: 'center'
-                            }}>
-                                {cfg.label}
-                            </span>
+                                fontSize: '11px', fontWeight: 700, padding: '3px 12px', borderRadius: '4px', minWidth: 110, textAlign: 'center'
+                            }}>{cfg.label}</span>
                         </div>
                     );
                 })}
@@ -313,7 +270,6 @@ const CategoryScoreSummary = ({ labData }) => {
 };
 
 // ─── LAB ANALYSIS SUB-COMPONENTS ───────────────────────────────────────────────
-
 function findMarkerMeta(key) {
     for (const [, cat] of Object.entries(MARKER_REGISTRY)) {
         if (cat.markers[key]) return { cat, def: cat.markers[key] };
@@ -321,58 +277,28 @@ function findMarkerMeta(key) {
     return null;
 }
 
-const TrafficPill = ({ status }) => {
-    const cfg = TRAFFIC_CFG[status] || TRAFFIC_CFG.missing;
-    return (
-        <span style={{
-            backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}`,
-            fontSize: '9px', fontWeight: 900, letterSpacing: '0.12em', padding: '2px 8px', borderRadius: '99px', whiteSpace: 'nowrap',
-            display: 'inline-flex', alignItems: 'center', gap: 4
-        }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: cfg.dot, flexShrink: 0 }} />
-            {cfg.label}
-        </span>
-    );
-};
-
 const MarkerRow = ({ markerKey, def, value, patientLabRanges }) => {
     const trafficStatus = getTrafficLight(value, def);
     const hasValue = trafficStatus !== 'missing';
     const patientRange = patientLabRanges?.[markerKey];
-    const labRangeDiffers = patientRange &&
-        (patientRange[0] !== def.range[0] || patientRange[1] !== def.range[1]);
-
+    const labRangeDiffers = patientRange && (patientRange[0] !== def.range[0] || patientRange[1] !== def.range[1]);
     const cfg = TRAFFIC_CFG[trafficStatus];
-    const isSuboptimal = trafficStatus === 'amber';
-    const optRange = def.optimal;
 
     return (
-        <div style={{
-            display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 12px', borderRadius: '10px', marginBottom: '5px',
-            backgroundColor: cfg.bg, border: `1px solid ${cfg.border}`
-        }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', flexShrink: 0, backgroundColor: cfg.dot }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', borderRadius: '8px', marginBottom: '8px', backgroundColor: '#FFFFFF', border: '1px solid #EDE7DB' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', flexShrink: 0, backgroundColor: cfg.dot }} />
             <div style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: '#1e293b', display: 'block' }}>{def.label}</span>
-                {isSuboptimal && optRange && (
-                    <span style={{ fontSize: '8px', color: '#92400e', fontWeight: 700 }}>
-                        Optimal: {optRange[0]}–{optRange[1]} {def.unit}
-                    </span>
+                <span style={{ fontSize: '13px', fontWeight: 600, color: '#1F2937', display: 'block' }}>{def.label}</span>
+                {trafficStatus === 'amber' && def.optimal && (
+                    <span style={{ fontSize: '11px', color: '#C97B2E', fontStyle: 'italic' }}>Optimal Target: {def.optimal[0]}–{def.optimal[1]} {def.unit}</span>
                 )}
             </div>
-            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0F4C5C', minWidth: 90, textAlign: 'right' }}>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '14px', fontWeight: 600, color: '#0F4C5C', minWidth: 100, textAlign: 'right' }}>
                 {hasValue ? `${value} ${def.unit}` : '—'}
             </span>
-            <span style={{ fontSize: '9px', color: '#94a3b8', fontWeight: 700, minWidth: 100, textAlign: 'right' }}>
-                {def.range[0]}–{def.range[1]} {def.unit}
-            </span>
-            <TrafficPill status={trafficStatus} />
-            {labRangeDiffers && (
-                <span title={`Your lab range: ${patientRange[0]}–${patientRange[1]} (differs from standard)`}
-                    style={{ color: '#f59e0b', cursor: 'help', flexShrink: 0 }}>
-                    <AlertTriangle size={12} />
-                </span>
-            )}
+            <span style={{ fontSize: '12px', color: '#6B7280', minWidth: 110, textAlign: 'right' }}>Ref: {def.range[0]}–{def.range[1]} {def.unit}</span>
+            <span style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}`, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', minWidth: 100, textAlign: 'center' }}>{cfg.label}</span>
+            {labRangeDiffers && <span title="Lab Range Threshold Variance Flag" style={{ color: '#C97B2E', marginLeft: 4 }}><AlertTriangle size={14} /></span>}
         </div>
     );
 };
@@ -382,26 +308,18 @@ const MissingMarkersAlert = ({ goal, presentKeys }) => {
     const missing = required.filter(k => !presentKeys.includes(k));
     if (missing.length === 0) return null;
     return (
-        <div style={{ backgroundColor: '#fff7ed', border: '1px solid #fed7aa', borderRadius: '12px', padding: '14px 16px', marginBottom: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <AlertTriangle size={14} color="#ea580c" />
-                <span style={{ fontSize: '10px', fontWeight: 900, color: '#ea580c', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                    Missing markers for your {goal} goal
-                </span>
+        <div style={{ backgroundColor: '#FDF3E7', borderLeft: '4px solid #C97B2E', borderRadius: '8px', padding: '16px', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <AlertTriangle size={15} color="#C97B2E" />
+                <span style={{ fontSize: '11px', fontWeight: 700, color: '#C97B2E', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Missing Markers For Program Goal ({goal})</span>
             </div>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
                 {missing.map(k => {
                     const found = findMarkerMeta(k);
                     if (!found) return null;
-                    const { cat, def } = found;
                     return (
-                        <span key={k} style={{
-                            backgroundColor: '#fff', border: '1px solid #fed7aa', borderRadius: '99px', padding: '3px 10px',
-                            fontSize: '10px', fontWeight: 800, color: '#92400e', display: 'flex', alignItems: 'center', gap: 4
-                        }}>
-                            {def.label}
-                            <span style={{ color: '#cbd5e1' }}>·</span>
-                            <span style={{ color: '#64748b', fontSize: '9px' }}>{cat.label}</span>
+                        <span key={k} className="pill" style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '12px', backgroundColor: '#FFFFFF', color: '#1F2937' }}>
+                            <strong>{found.def.label}</strong> <span style={{ color: '#6B7280' }}>({found.cat.label})</span>
                         </span>
                     );
                 })}
@@ -414,50 +332,20 @@ const CategorySection = ({ cat, labData, patientLabRanges }) => {
     const [open, setOpen] = useState(true);
     const entries = Object.entries(cat.markers);
     const testedCount = entries.filter(([k]) => labData[k] !== undefined && labData[k] !== null && labData[k] !== '').length;
-    const score = getCategoryScore(cat, labData);
-    const scoreCfg = TRAFFIC_CFG[score];
+    const scoreCfg = TRAFFIC_CFG[getCategoryScore(cat, labData)];
 
     return (
-        <div style={{
-            backgroundColor: '#fff', borderRadius: '14px', border: `1px solid ${scoreCfg.border}`, marginBottom: '10px', overflow: 'hidden',
-            boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
-        }}>
-            <button onClick={() => setOpen(o => !o)} style={{
-                width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer',
-                borderBottom: open ? '1px solid #f1f5f9' : 'none'
-            }}>
-                <span style={{
-                    width: 30, height: 30, borderRadius: '8px', backgroundColor: cat.accent, display: 'flex', alignItems: 'center', justifycontent: 'center',
-                    fontSize: '13px', flexShrink: 0, color: cat.color, fontWeight: 900
-                }}>{cat.icon}</span>
-                <span style={{ flex: 1, textAlign: 'left', fontSize: '11px', fontWeight: 900, color: '#1e293b', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                    {cat.label}
-                </span>
-                <span style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', marginRight: 6 }}>
-                    {testedCount}/{entries.length} tested
-                </span>
-                <span style={{ fontSize: '13px', marginRight: 4 }}>{scoreCfg.emoji}</span>
-                <span style={{
-                    backgroundColor: scoreCfg.bg, color: scoreCfg.text, border: `1px solid ${scoreCfg.border}`,
-                    fontSize: '9px', fontWeight: 900, padding: '2px 8px', borderRadius: '99px', marginRight: 6, letterSpacing: '0.1em'
-                }}>{scoreCfg.label}</span>
-                {open ? <ChevronUp size={13} color="#94a3b8" /> : <ChevronDown size={13} color="#94a3b8" />}
+        <div style={{ backgroundColor: '#FFFFFF', borderRadius: '12px', border: '1px solid #EDE7DB', marginBottom: '12px', overflow: 'hidden' }}>
+            <button onClick={() => setOpen(!open)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit' }}>
+                <span style={{ width: 30, height: 30, borderRadius: '6px', backgroundColor: cat.accent, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', color: cat.color, fontWeight: 600 }}>{cat.icon}</span>
+                <span style={{ flex: 1, textAlign: 'left', fontSize: '13px', fontWeight: 700, color: '#1F2937', textTransform: 'uppercase' }}>{cat.label}</span>
+                <span style={{ fontSize: '12px', color: '#6B7280', marginRight: 10 }}>{testedCount} / {entries.length} Tested</span>
+                <span style={{ backgroundColor: scoreCfg.bg, color: scoreCfg.text, border: `1px solid ${scoreCfg.border}`, fontSize: '11px', fontWeight: 700, padding: '3px 10px', borderRadius: '4px', marginRight: 10 }}>{scoreCfg.label}</span>
+                {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
             {open && (
-                <div style={{ padding: '12px 16px' }}>
-                    {entries.map(([k, def]) => (
-                        <MarkerRow key={k} markerKey={k} def={def} value={labData[k]} patientLabRanges={patientLabRanges} />
-                    ))}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 }}>
-                        {entries.filter(([, d]) => d.note).map(([k, d]) => (
-                            <span key={k} style={{
-                                fontSize: '9px', color: '#64748b', backgroundColor: '#f8fafc',
-                                border: '1px solid #e2e8f0', borderRadius: '8px', padding: '3px 8px', fontWeight: 600
-                            }}>
-                                <strong style={{ color: '#0F4C5C' }}>{d.label}:</strong> {d.note}
-                            </span>
-                        ))}
-                    </div>
+                <div style={{ padding: '16px 20px', backgroundColor: '#F7F1E8' }}>
+                    {entries.map(([k, def]) => <MarkerRow key={k} markerKey={k} def={def} value={labData[k]} patientLabRanges={patientLabRanges} />)}
                 </div>
             )}
         </div>
@@ -467,187 +355,72 @@ const CategorySection = ({ cat, labData, patientLabRanges }) => {
 const LabAnalysis = ({ labData = {}, patientGoal = 'general', patientLabRanges = {} }) => {
     const [activeGoal, setActiveGoal] = useState(patientGoal);
     const [searchQuery, setSearchQuery] = useState('');
-
     const presentKeys = Object.keys(labData).filter(k => labData[k] !== undefined && labData[k] !== '');
-
-    let totalMarkers = 0, testedMarkers = 0;
-    let greenCount = 0, amberCount = 0, redCount = 0;
-
-    for (const cat of Object.values(MARKER_REGISTRY)) {
-        for (const [k, def] of Object.entries(cat.markers)) {
-            totalMarkers++;
-            const st = getTrafficLight(labData[k], def);
-            if (st !== 'missing') testedMarkers++;
-            if (st === 'green') greenCount++;
-            if (st === 'amber') amberCount++;
-            if (st === 'red') redCount++;
-        }
-    }
 
     const filteredCategories = Object.entries(MARKER_REGISTRY).filter(([, cat]) => {
         if (!searchQuery) return true;
         const q = searchQuery.toLowerCase();
-        return cat.label.toLowerCase().includes(q) ||
-            Object.values(cat.markers).some(d => d.label.toLowerCase().includes(q));
+        return cat.label.toLowerCase().includes(q) || Object.values(cat.markers).some(d => d.label.toLowerCase().includes(q));
     });
 
     return (
         <div>
-            <div className="flex items-center gap-2 mb-5">
-                <FlaskConical size={16} color="#0F4C5C" />
-                <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest">
-                    Lab Marker Analysis & Normalisation
-                </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '20px' }}>
+                <FlaskConical size={18} color="#0F4C5C" />
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600 }}>Biomarker Integration Engine</h2>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 20 }}>
-                {[
-                    { label: 'Total Markers', value: totalMarkers, color: '#0F4C5C', bg: '#f0fdf9', border: '#99f6e4' },
-                    { label: 'Optimal', value: greenCount, color: '#15803d', bg: '#f0fdf4', border: '#86efac' },
-                    { label: 'Suboptimal', value: amberCount, color: '#92400e', bg: '#fffbeb', border: '#fde68a' },
-                    { label: 'Out of Range', value: redCount, color: redCount > 0 ? '#dc2626' : '#15803d', bg: redCount > 0 ? '#fef2f2' : '#f0fdf4', border: redCount > 0 ? '#fca5a5' : '#86efac' },
-                ].map(c => (
-                    <div key={c.label} style={{
-                        backgroundColor: c.bg, borderRadius: '12px', padding: '12px 14px', border: `1px solid ${c.border}`
-                    }}>
-                        <p style={{ fontSize: '8px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em', margin: '0 0 4px' }}>
-                            {c.label}
-                        </p>
-                        <p style={{ fontSize: '24px', fontWeight: 900, color: c.color, margin: 0, lineHeight: 1 }}>
-                            {c.value}
-                        </p>
-                    </div>
-                ))}
-            </div>
-
-            {(patientGoal === 'fertility' || patientGoal === 'pcos') && (
-                <FertilityRiskBanner labData={labData} />
-            )}
-
-            <CategoryScoreSummary labData={labData} />
-
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
                 {Object.keys(GOAL_MARKERS).map(g => (
-                    <button key={g} onClick={() => setActiveGoal(g)} style={{
-                        padding: '5px 13px', borderRadius: '99px', border: 'none', cursor: 'pointer',
-                        fontSize: '10px', fontWeight: 900, letterSpacing: '0.1em', textTransform: 'uppercase',
-                        backgroundColor: activeGoal === g ? '#0F4C5C' : '#f1f5f9',
-                        color: activeGoal === g ? '#F7F1E8' : '#64748b',
-                        transition: 'all 0.15s'
-                    }}>{g}</button>
+                    <button key={g} onClick={() => setActiveGoal(g)} className={`do ${activeGoal === g ? 'on' : ''}`}>{g} Panel</button>
                 ))}
             </div>
 
             <MissingMarkersAlert goal={activeGoal} presentKeys={presentKeys} />
 
-            <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, backgroundColor: '#f8fafc', borderRadius: '10px',
-                border: '1px solid #e2e8f0', padding: '8px 12px', marginBottom: 14
-            }}>
-                <Search size={12} color="#94a3b8" />
-                <input
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    placeholder="Search markers…"
-                    style={{
-                        border: 'none', background: 'none', outline: 'none', fontSize: '11px', fontWeight: 600, color: '#1e293b', width: '100%'
-                    }}
-                />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, backgroundColor: '#FFFFFF', borderRadius: '8px', border: '1px solid #EDE7DB', padding: '10px 14px', marginBottom: 16 }}>
+                <Search size={14} color="#6B7280" />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder="Filter active health biomarkers..." style={{ border: 'none', background: 'none', outline: 'none', fontSize: '13px', width: '100%', fontFamily: 'inherit' }} />
             </div>
 
-            <div style={{
-                display: 'flex', gap: 10, flexWrap: 'wrap', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0',
-                borderRadius: '10px', padding: '10px 14px', marginBottom: 14
-            }}>
-                <span style={{ fontSize: '9px', fontWeight: 800, color: '#64748b', letterSpacing: '0.1em', textTransform: 'uppercase', marginRight: 4 }}>Key:</span>
-                {[
-                    { emoji: '🟢', label: 'Optimal — within optimal range' },
-                    { emoji: '🟡', label: 'Suboptimal — normal but not ideal' },
-                    { emoji: '🔴', label: 'Out of Range — requires attention' },
-                    { emoji: '⚪', label: 'Not tested' },
-                ].map(item => (
-                    <span key={item.label} style={{ fontSize: '9px', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span>{item.emoji}</span>{item.label}
-                    </span>
-                ))}
-            </div>
+            <CategoryScoreSummary labData={labData} />
 
-            <div style={{
-                display: 'flex', alignItems: 'flex-start', gap: 8, backgroundColor: '#f0f9ff', border: '1px solid #bae6fd',
-                borderRadius: '10px', padding: '10px 14px', marginBottom: 18
-            }}>
-                <Info size={12} color="#0369a1" style={{ flexShrink: 0, marginTop: 2 }} />
-                <p style={{ fontSize: '10px', color: '#0369a1', fontWeight: 600, margin: 0, lineHeight: 1.5 }}>
-                    Standard clinical reference ranges are shown. <strong>Optimal ranges</strong> are narrower, evidence-based targets (e.g., TSH 0.5–2.5 for fertility vs. clinical range 0.4–4.0).
-                    Where your lab's reported range differs, a <AlertTriangle size={10} style={{ display: 'inline', verticalAlign: 'middle' }} /> flag appears.
-                    Ranges may vary by age, sex, and cycle day — consult your clinician for personalised interpretation.
-                </p>
-            </div>
-
-            {filteredCategories.map(([ck, cat]) => (
-                <CategorySection key={ck} cat={cat} labData={labData} patientLabRanges={patientLabRanges} />
-            ))}
+            {filteredCategories.map(([ck, cat]) => <CategorySection key={ck} cat={cat} labData={labData} patientLabRanges={patientLabRanges} />)}
         </div>
     );
 };
 
 // ─── INTAKE SUMMARY COMPONENT ─────────────────────────────────────────────
-
 const IntakeSummary = ({ intake }) => {
     if (!intake || Object.keys(intake).length === 0) return null;
 
     return (
-        <section className="print-full-width" style={{ breakInside: 'avoid', marginBottom: '32px' }}>
-            <div className="flex items-center gap-2 mb-5">
-                <ClipboardList size={16} color="#0F4C5C" />
-                <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest">
-                    Patient Intake Summary
-                </h2>
+        <section className="card" style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '16px' }}>
+                <ClipboardList size={18} color="#0F4C5C" />
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600 }}>Intake Diagnostics</h2>
             </div>
-
-            <div className="bg-white p-6 rounded-xl border border-black/10 print:border-black print:border-[0.5pt] shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {intake.diagnoses && intake.diagnoses.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {intake.diagnoses?.length > 0 && (
                     <div>
-                        <h3 className="text-[10px] font-black text-[#0F4C5C] uppercase tracking-widest mb-3">Diagnosed Conditions</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {intake.diagnoses.map((d, i) => (
-                                <span key={i} className="bg-[#e0f2fe] text-[#0369a1] px-3 py-1.5 rounded-md text-[10px] font-bold border border-[#bae6fd]">
-                                    {d}
-                                </span>
-                            ))}
+                        <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>Diagnostic History</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {intake.diagnoses.map((d, i) => <span key={i} className="pill on">{d}</span>)}
                         </div>
                     </div>
                 )}
-
-                {intake.symptoms && intake.symptoms.length > 0 && (
+                {intake.symptoms?.length > 0 && (
                     <div>
-                        <h3 className="text-[10px] font-black text-[#0F4C5C] uppercase tracking-widest mb-3">Current Symptoms</h3>
-                        <div className="flex flex-wrap gap-2">
-                            {intake.symptoms.map((s, i) => (
-                                <span key={i} className="bg-[#fef3c7] text-[#92400e] px-3 py-1.5 rounded-md text-[10px] font-bold border border-[#fde68a]">
-                                    {s}
-                                </span>
-                            ))}
+                        <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '8px' }}>Reported Symptoms</h3>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                            {intake.symptoms.map((s, i) => <span key={i} className="pill" style={{ backgroundColor: '#FDF3E7', color: '#C97B2E' }}>{s}</span>)}
                         </div>
                     </div>
                 )}
-
                 {intake.goals && (
-                    <div className="md:col-span-2">
-                        <h3 className="text-[10px] font-black text-[#0F4C5C] uppercase tracking-widest mb-2">Primary Goals (Next 3 Months)</h3>
-                        <p className="text-sm text-gray-700 bg-gray-50 p-4 rounded-lg border border-gray-100 leading-relaxed">
-                            {intake.goals}
-                        </p>
-                    </div>
-                )}
-
-                {intake.stated_concern && (
-                    <div className="md:col-span-2">
-                        <h3 className="text-[10px] font-black text-[#0F4C5C] uppercase tracking-widest mb-2">Main Request / Extra Notes</h3>
-                        <p className="text-sm text-gray-700 bg-[#f0fdf4] p-4 rounded-lg border border-[#86efac] leading-relaxed">
-                            {intake.stated_concern}
-                        </p>
+                    <div>
+                        <h3 style={{ fontSize: '11px', fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', marginBottom: '4px' }}>Primary Milestones</h3>
+                        <p style={{ fontSize: '13px', padding: '12px', backgroundColor: '#F7F1E8', borderRadius: '8px' }}>{intake.goals}</p>
                     </div>
                 )}
             </div>
@@ -656,65 +429,39 @@ const IntakeSummary = ({ intake }) => {
 };
 
 // ─── PATIENT REVIEW VIEW COMPONENT ──────────────────────────────────────────
-
 const PatientReviewView = ({ reviews }) => {
     if (!reviews || reviews.length === 0) return null;
 
     const latestReview = reviews[0];
     const date = new Date(latestReview.sent_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-
-    const cleanMessage = latestReview.message_text
-        ? latestReview.message_text.split('=== AI SUMMARY REFERENCE ===')[0].trim()
-        : '';
+    const cleanMessage = latestReview.message_text ? latestReview.message_text.split('=== AI SUMMARY REFERENCE ===')[0].trim() : '';
 
     return (
-        <section className="mb-8 print-full-width" style={{ breakInside: 'avoid' }}>
-            <div className="flex items-center gap-2 mb-4">
+        <section style={{ marginBottom: '24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: '12px' }}>
                 <CheckCircle2 size={18} color="#0F4C5C" />
-                <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest">
-                    Your Specialist's Review
-                </h2>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600 }}>Clinical Assessment Update</h2>
             </div>
-
-            <div className="bg-white rounded-2xl shadow-xl shadow-[#0F4C5C]/5 border border-[#0F4C5C]/20 overflow-hidden">
-                <div className="bg-[#f0f9ff] border-b border-[#bae6fd] px-6 py-4 flex justify-between items-center flex-wrap gap-2">
-                    <div className="flex items-center gap-3">
-                        <div className="bg-[#0F4C5C] text-white w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs">
+            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                <div style={{ backgroundColor: '#E8F4F7', padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={{ backgroundColor: '#0F4C5C', color: '#F7F1E8', width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>
                             {latestReview.reviewed_by?.charAt(0) || 'S'}
                         </div>
                         <div>
-                            <p className="text-sm font-black text-gray-900">{latestReview.reviewed_by || 'Specialist'}</p>
-                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{date}</p>
+                            <p style={{ fontSize: '13px', fontWeight: 600, margin: 0 }}>{latestReview.reviewed_by || 'Care Specialist'}</p>
+                            <p style={{ fontSize: '11px', color: '#6B7280', margin: 0 }}>{date}</p>
                         </div>
                     </div>
-
-                    {latestReview.next_step && (
-                        <span className="bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider">
-                            Next Step: {latestReview.next_step}
-                        </span>
-                    )}
+                    {latestReview.next_step && <span className="at d">{latestReview.next_step}</span>}
                 </div>
-
-                <div className="p-6">
-                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap font-medium">
-                        {cleanMessage}
-                    </p>
+                <div style={{ padding: '20px', backgroundColor: '#FFFFFF' }}>
+                    <p style={{ fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>{cleanMessage}</p>
                 </div>
-
                 {latestReview.protocol_attachment_url && (
-                    <div className="bg-gray-50 px-6 py-4 border-t border-gray-100 flex items-center gap-3">
-                        <FileText size={18} className="text-[#0F4C5C]" />
-                        <div className="flex-1">
-                            <p className="text-xs font-bold text-gray-800 uppercase tracking-wide">Protocol Attachment</p>
-                        </div>
-                        <a
-                            href={latestReview.protocol_attachment_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-[#0F4C5C] text-white px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-[#0a3540] transition-colors"
-                        >
-                            View Document
-                        </a>
+                    <div style={{ backgroundColor: '#F7F1E8', padding: '12px 20px', borderTop: '1px solid #EDE7DB', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span style={{ fontSize: '12px', fontWeight: 600 }} className="flex items-center gap-2"><FileText size={16} /> Updated Strategic Protocol Attached</span>
+                        <a href={latestReview.protocol_attachment_url} target="_blank" rel="noopener noreferrer" className="btn-primary" style={{ textDecoration: 'none' }}>View Document</a>
                     </div>
                 )}
             </div>
@@ -723,63 +470,89 @@ const PatientReviewView = ({ reviews }) => {
 };
 
 // ─── MAIN DASHBOARD ────────────────────────────────────────────────────────────
-
-const Dashboard = ({ patientId }) => {
+const Dashboard = ({ patientId: propPatientId }) => {
+    const { patientId: urlPatientId } = useParams();
+    const activePatientId = propPatientId || urlPatientId;
+    
     const navigate = useNavigate();
     const [data, setData] = useState({ labs: [], symptoms: [], specialistReviews: [] });
-    const [demographics, setDemographics] = useState({ age: '—', gender: '—' });
-    const [intakeData, setIntakeData] = useState(null);
+    const [demographics, setDemographics] = useState({ name: '—', age: '—', gender: '—', goal: 'general' });
     const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-    const [isMounted, setIsMounted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [notes, setNotes] = useState('');
     const [sending, setSending] = useState(false);
+    const [currentScreen, setCurrentScreen] = useState('dashboard');
+    const [activeProtocolTab, setActiveProtocolTab] = useState('nut');
+    const [intakeData, setIntakeData] = useState(null);
 
-    const dashboardRef = useRef(null);
+    // State mechanics for internal subjective monitoring checks
+    const [checkinForm, setCheckinForm] = useState({ energy: 8, mood: 9, sleep: 9, stress: 1, symptoms: ['Constipation'], notes: 'Type 2 today, still feels lumpy. Iron definitely slowing things down but drinking more water today.' });
 
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : import.meta.env.VITE_SERVER_URL;
+        : import.meta.env.VITE_SERVER_URL || '';
 
     useEffect(() => {
-        setIsMounted(true);
-        fetchDashboardData();
-    }, [patientId]);
+        if (activePatientId) {
+            fetchDashboardData();
+        }
+    }, [activePatientId]);
 
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${baseURL}/api/patient/dashboard/${patientId}`);
+            const res = await axios.get(`${baseURL}/api/patient/dashboard/${activePatientId}`);
             if (res.data.success) {
                 setData({
                     labs: res.data.labs,
                     symptoms: res.data.symptoms,
                     specialistReviews: res.data.specialistReviews
                 });
-                setDemographics(res.data.profile);
+                if (res.data.profile) {
+                    setDemographics(res.data.profile);
+                }
                 setIntakeData(res.data.intake);
             }
         } catch (err) {
-            console.error("Fetch error", err);
+            console.error("Dashboard fetch operational safeguard hit:", err);
         } finally {
             setLoading(false);
         }
     };
 
     const handleAppointmentSubmit = async () => {
+        if (!notes.trim()) return;
         setSending(true);
         try {
-            await axios.post(`${baseURL}/api/patient/request-appointment`, {
-                patientId, notes
-            });
-            alert("Your appointment request has been sent to support@allvihealth.com!");
+            await axios.post(`${baseURL}/api/patient/request-appointment`, { patientId: activePatientId, notes });
+            alert("Strategic message dispatched to support@allvihealth.com!");
             setIsModalOpen(false);
             setNotes('');
         } catch {
-            alert("Failed to send request. Please try again.");
+            alert("Strategic communication relay pipeline failed.");
         } finally {
             setSending(false);
+        }
+    };
+
+    const handleCheckinSubmit = async () => {
+        try {
+            await axios.post(`${baseURL}/api/patient/import-symptoms`, {
+                patientId: activePatientId,
+                symptoms: [{
+                    date: new Date().toISOString().split('T')[0],
+                    energy: checkinForm.energy,
+                    sleep: checkinForm.sleep,
+                    mood: checkinForm.mood,
+                    stress: checkinForm.stress
+                }]
+            });
+            alert("Daily Metric Log Captured Successfully!");
+            await fetchDashboardData();
+            setCurrentScreen('dashboard');
+        } catch (err) {
+            alert("Failed to save operational biometric logs.");
         }
     };
 
@@ -798,7 +571,6 @@ const Dashboard = ({ patientId }) => {
 
     const getMergedLabData = () => {
         const merged = { meta: {} };
-
         if (data.labs && data.labs.length > 0) {
             [...data.labs].reverse().forEach(report => {
                 Object.entries(report).forEach(([k, v]) => {
@@ -814,14 +586,7 @@ const Dashboard = ({ patientId }) => {
         return merged;
     };
 
-    const handleDownload = () => {
-        const originalTitle = document.title;
-        document.title = `Allvi health_${patientId}`;
-        window.print();
-        document.title = originalTitle;
-    };
-
-    const handleFileUpload = (event) => {
+    const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
@@ -830,336 +595,623 @@ const Dashboard = ({ patientId }) => {
             skipEmptyLines: true,
             complete: async (results) => {
                 try {
-                    const response = await fetch(`${baseURL}/api/patient/import-symptoms`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            patientId: patientId,
-                            symptoms: results.data
-                        }),
+                    const response = await axios.post(`${baseURL}/api/patient/import-symptoms`, {
+                        patientId: activePatientId,
+                        symptoms: results.data
                     });
-                    if (!response.ok) {
-                        const errorText = await response.text();
-                        console.error("Server Error:", errorText);
-                        return alert(`Upload failed: ${response.status} ${response.statusText}`);
-                    }
-
-                    const result = await response.json();
-                    if (result.success) {
-                        alert("Symptoms imported successfully!");
+                    if (response.data.success) {
+                        alert("Biometric CSV records processed successfully!");
                         await fetchDashboardData();
                     }
                 } catch (error) {
-                    console.error("Error uploading symptoms:", error);
+                    alert("Failure executing symptom import parse script.");
                 }
             }
         });
     };
 
-    const ChartCard = ({ title, dataKey, color, data }) => {
-        const latestEntry = [...data].reverse().find(entry => entry[dataKey] !== undefined);
+    const ChartCard = ({ title, dataKey, color, data: sourceData }) => {
+        const latestEntry = [...sourceData].reverse().find(entry => entry[dataKey] !== undefined);
         const meta = latestEntry?.meta?.[dataKey] || {};
-        const currentValue = latestEntry?.[dataKey] || '—';
+        const currentValue = latestEntry?.[dataKey] !== undefined ? latestEntry[dataKey] : '—';
 
         return (
-            <div className="bg-white p-6 rounded-xl border border-black/10 print:border-black print:border-[0.5pt] w-full mb-8 shadow-sm flex flex-col" style={{ breakInside: 'avoid' }}>
-                <div className="flex items-center justify-between mb-8 gap-2">
-                    <div className="flex items-center gap-2 flex-1">
-                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: color }}></span>
-                        <h3 className="text-[#1F2937] text-[11px] font-black uppercase tracking-widest leading-tight truncate">
-                            {meta.key || title.replace(/_/g, ' ')}
-                        </h3>
+            <div className="card" style={{ display: 'flex', flexDirection: 'column', breakInside: 'avoid' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: color }} />
+                        <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', color: '#1F2937' }}>{meta.label || title.replace(/_/g, ' ')}</h3>
                     </div>
-                    <div className="flex flex-col items-center justify-center flex-1 px-2 border-x border-slate-100">
-                        <p className="text-[10px] font-bold text-[#0F4C5C] uppercase tracking-tighter">{meta.unit || 'Unit'}</p>
-                        <p className="text-[8px] text-[#1F2937]/40 font-bold uppercase tracking-tighter whitespace-nowrap">Ref: {meta.ref_range || 'N/A'}</p>
-                    </div>
-                    <div className="text-right flex-1">
-                        <p className="text-[10px] font-bold text-[#0F4C5C] uppercase tracking-tighter">Value: {currentValue}</p>
-                    </div>
+                    <span style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: '#0F4C5C' }}>{currentValue}<span style={{ fontSize: '11px', color: '#6B7280', marginLeft: '2px', fontFamily: 'sans-serif', fontWeight: 400 }}>{meta.unit || ''}</span></span>
                 </div>
-                <div style={{ width: '100%', height: 250 }}>
-                    {isMounted && (
-                        <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                <XAxis
-                                    dataKey="test_date"
-                                    tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }}
-                                    axisLine={{ stroke: '#f1f5f9' }}
-                                    tickLine={true}
-                                    label={{ value: 'Timeline', position: 'insideBottomRight', offset: -15, fontSize: 8, fontWeight: 900, fill: '#cbd5e1', textAnchor: 'end' }}
-                                />
-                                <YAxis
-                                    tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }}
-                                    axisLine={true}
-                                    tickLine={true}
-                                    domain={['auto', 'auto']}
-                                    label={{
-                                        value: meta.unit || 'Value', angle: -90, position: 'insideLeft',
-                                        style: { textAnchor: 'middle', fontSize: 8, fontWeight: 900, fill: '#cbd5e1', textTransform: 'uppercase' }
-                                    }}
-                                />
-                                <Tooltip
-                                    contentStyle={{ borderRadius: '12px', border: 'none', backgroundColor: '#1F2937', color: '#fff', fontSize: '10px' }}
-                                    itemStyle={{ color: '#F7F1E8' }}
-                                    formatter={(value) => [`${value} ${meta.unit || ''}`, meta.label || title]}
-                                />
-                                <Line connectNulls type="monotone" dataKey={dataKey} stroke={color} strokeWidth={3} dot={{ r: 4, fill: color, strokeWidth: 2, stroke: '#fff' }} isAnimationActive={true} />
-                            </LineChart>
-                        </ResponsiveContainer>
-                    )}
+                <div style={{ fontSize: '11px', color: '#6B7280', padding: '3px 8px', backgroundColor: '#EDE7DB', borderRadius: '4px', alignSelf: 'flex-start', marginBottom: '12px' }}>Ref Range: {meta.ref_range || 'N/A'}</div>
+                <div style={{ width: '100%', height: 160 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={sourceData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#EDE7DB" vertical={false} />
+                            <XAxis dataKey="test_date" tick={{ fontSize: 9, fill: '#6B7280' }} />
+                            <YAxis domain={['auto', 'auto']} tick={{ fontSize: 9, fill: '#6B7280' }} />
+                            <Tooltip contentStyle={{ backgroundColor: '#1F2937', color: '#fff', fontSize: '11px', borderRadius: '6px' }} />
+                            <Line connectNulls type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2} dot={{ r: 3, fill: color }} isAnimationActive={false} />
+                        </LineChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
         );
     };
 
-    if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-[#F7F1E8]">
-            <Loader2 className="animate-spin text-[#0F4C5C]" size={40} />
-        </div>
-    );
+    const mergedLabData = getMergedLabData();
+
+    // Compute dynamic telemetry fields for the target main metrics blocks (Dashboard & Weekly Report panels)
+    const latestSymptomRow = data.symptoms && data.symptoms.length > 0 
+        ? data.symptoms[data.symptoms.length - 1] 
+        : null;
+
+    const historicalSymptomRow = data.symptoms && data.symptoms.length > 1 
+        ? data.symptoms[data.symptoms.length - 2] 
+        : null;
+
+    const evaluateTrend = (currentVal, pastRow, metricField) => {
+        if (currentVal === undefined || currentVal === null) return "No data logged";
+        if (!pastRow || pastRow[metricField] === undefined) return "→ stable snapshot";
+        const delta = currentVal - pastRow[metricField];
+        if (delta > 0) return `↑ up from ${pastRow[metricField]}`;
+        if (delta < 0) return `↓ down from ${pastRow[metricField]}`;
+        return "→ stable vs last entry";
+    };
+
+    const dynamicEnergy = latestSymptomRow?.energy !== undefined ? latestSymptomRow.energy : 7.8;
+    const dynamicMood = latestSymptomRow?.mood !== undefined ? latestSymptomRow.mood : 8.4;
+    const dynamicSleep = latestSymptomRow?.sleep !== undefined ? latestSymptomRow.sleep : 9.2;
+    const dynamicStress = latestSymptomRow?.stress !== undefined ? latestSymptomRow.stress : 1.2;
 
     return (
-        <div className="min-h-screen bg-[#F7F1E8] p-4 md:p-8">
+        <div style={{ backgroundColor: '#F7F1E8', minHeight: '100vh' }}>
             <style dangerouslySetInnerHTML={{
                 __html: `
-                @media print {
-                    @page { size: A4; margin: 0; }
-                    body { background-color: #F7F1E8 !important; -webkit-print-color-adjust: exact; margin: 0 !important; }
-                    .no-print { display: none !important; }
-                    .print-only { display: flex !important; }
-                    #dashboard-content {
-                        position: absolute !important;
-                        top: 0 !important;
-                        left: 0 !important;
-                        width: 210mm !important;
-                        padding: 15mm !important;
-                        margin: 0 !important;
-                        display: block !important;
-                    }
-                    .grid { display: block !important; }
-                    .recharts-responsive-container { width: 100% !important; height: 300px !important; }
-                }
-            `}} />
+                .nav { background: #0F4C5C; padding: 0 32px; height: 64px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+                .nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; color: #F7F1E8; }
+                .nav-logo span { font-size: 10px; font-family: 'DM Sans', sans-serif; font-weight: 300; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(247,241,232,0.6); display: block; margin-top: -2px; }
+                .nav-right { display: flex; align-items: center; gap: 20px; }
+                .nav-streak { background: rgba(247,241,232,0.12); border-radius: 20px; padding: 6px 14px; font-size: 13px; color: #F7F1E8; font-weight: 500; }
+                .nav-streak strong { color: #F5C842; }
+                .nav-avatar { width: 36px; height: 36px; border-radius: 50%; background: #EDE7DB; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: #0F4C5C; }
+                
+                .layout { display: flex; min-height: calc(100vh - 64px); }
+                .sidebar { width: 220px; min-width: 220px; background: #FFFFFF; border-right: 1px solid rgba(15,76,92,0.08); padding: 24px 0; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto; flex-shrink: 0; text-align: left; }
+                .si-section { padding: 16px 20px 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(107,114,128,0.7); }
+                .si { display: flex; align-items: center; gap: 10px; padding: 11px 20px; font-size: 14px; font-weight: 500; color: #6B7280; cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; }
+                .si:hover { background: #E8F4F7; color: #0F4C5C; }
+                .si.on { background: #E8F4F7; color: #0F4C5C; border-left-color: #0F4C5C; font-weight: 600; }
+                .si-icon { width: 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+                
+                .main { flex: 1; padding: 32px; max-width: 960px; text-align: left; }
+                .card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); border: 1px solid rgba(15,76,92,0.06); margin-bottom: 24px; }
+                .ph { margin-bottom: 28px; }
+                .ph-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: #1F2937; }
+                .ph-sub { font-size: 14px; color: #6B7280; margin-top: 4px; }
+                .g4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+                .kpi { background: #FFFFFF; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); border: 1px solid rgba(15,76,92,0.06); position: relative; overflow: hidden; }
+                .kpi::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #0F4C5C; }
+                .kpi.am::before { background: #C97B2E; }
+                .kpi.gr::before { background: #2D6A4F; }
+                .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 8px; }
+                .kpi-val { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: #0F4C5C; line-height: 1; }
+                .kpi-val.am { color: #C97B2E; }
+                .kpi-val.gr { color: #2D6A4F; }
+                .kpi-sub { font-size: 12px; color: #6B7280; margin-top: 6px; }
+                
+                .cb { background: #0F4C5C; border-radius: 12px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; cursor: pointer; }
+                .cb h3 { font-size: 16px; font-weight: 600; color: #F7F1E8; }
+                .cb p { font-size: 13px; color: rgba(247,241,232,0.7); margin-top: 2px; }
+                .cb-btn { background: #F7F1E8; color: #0F4C5C; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+                
+                .ic { border-radius: 8px; padding: 16px; margin-bottom: 12px; border-left: 4px solid; }
+                .ic.gr { background: #EAF5EE; border-left-color: #2D6A4F; }
+                .ic.am { background: #FDF3E7; border-left-color: #C97B2E; }
+                .ic-tag { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+                .ic-tag.gr { color: #2D6A4F; }
+                .ic-tag.am { color: #C97B2E; }
+                .ic-title { font-size: 14px; font-weight: 600; color: #1F2937; margin-bottom: 4px; }
+                .ic-body { font-size: 13px; color: #6B7280; line-height: 1.5; }
+                
+                .pill { padding: 7px 14px; border: 1.5px solid rgba(15,76,92,0.15); border-radius: 20px; font-size: 13px; color: #1F2937; cursor: pointer; transition: all 0.15s; background: #FFFFFF; display: inline-block; }
+                .pill.on { background: #0F4C5C; border-color: #0F4C5C; color: #F7F1E8; }
+                .pill.none { border-style: dashed; color: #6B7280; }
+                .do { padding: 8px 16px; border: 1.5px solid rgba(15,76,92,0.15); border-radius: 8px; font-size: 13px; cursor: pointer; background: #FFFFFF; color: #1F2937; transition: all 0.15s; }
+                .do.on { background: #0F4C5C; border-color: #0F4C5C; color: #F7F1E8; }
+                .btn-primary { background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+                .btn-ghost { background: none; color: #0F4C5C; border: 1px solid #0F4C5C; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
+                .sub-btn { width: 100%; background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+                .ta { width: 100%; min-height: 80px; padding: 12px 16px; border: 1px solid rgba(15,76,92,0.15); border-radius: 8px; font-family: inherit; font-size: 14px; color: #1F2937; background: #F7F1E8; resize: vertical; outline: none; line-height: 1.5; }
+                
+                .rh { background: #EDE7DB; border-radius: 12px; padding: 28px; margin-bottom: 24px; border: 1px solid rgba(15,76,92,0.06); }
+                .rw { font-family: 'Playfair Display', serif; font-size: 32px; font-weight: 600; color: #1F2937; margin-bottom: 4px; }
+                .rm { font-size: 13px; color: #6B7280; margin-bottom: 16px; }
+                .rk { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+                .rkc { background: #FFFFFF; border: 1px solid rgba(15,76,92,0.08); border-radius: 10px; padding: 14px; text-align: center; box-shadow: 0 1px 3px rgba(15,76,92,0.04); }
+                .rkv { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 400; color: #0F4C5C; }
+                .rkv.am { color: #C97B2E; }
+                .rkv.gr { color: #2D6A4F; }
+                .rkl { font-size: 11px; color: #6B7280; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+                .rkd { font-size: 11px; margin-top: 4px; font-weight: 500; }
+                
+                .dr { display: flex; align-items: flex-start; gap: 14px; padding: 16px 0; border-bottom: 1px solid #EDE7DB; }
+                .dr:last-child { border-bottom: none; }
+                .ds { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+                .ds.gr { background: #EAF5EE; }
+                .ds.am { background: #FDF3E7; }
+                .dn { font-size: 14px; font-weight: 600; color: #1F2937; margin-bottom: 4px; }
+                .dd { font-size: 13px; color: #6B7280; line-height: 1.5; }
+                .dbadge { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 8px; border-radius: 4px; margin-left: 6px; }
+                .dbadge.gr { background: #EAF5EE; color: #2D6A4F; }
+                .dbadge.am { background: #FDF3E7; color: #C97B2E; }
+                
+                .avs-title { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #0F4C5C; border-bottom: 1px solid #E8F4F7; padding-bottom: 6px; margin-bottom: 12px; }
+                .avt { width: 100%; border-collapse: collapse; }
+                .avt td { padding: 8px 4px; font-size: 13px; border-bottom: 1px solid #EDE7DB; vertical-align: top; }
+                .avt td:first-child { font-weight: 600; color: #6B7280; width: 38%; }
+                .avt tr:last-child td { border-bottom: none; }
+                .qn { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #EDE7DB; }
+                .qn:last-child { border-bottom: none; }
+                .qn-num { width: 24px; height: 24px; background: #0F4C5C; color: #F7F1E8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+                .qn-text { font-size: 13px; color: #1F2937; line-height: 1.5; }
+                
+                .pt-tabs { display: flex; gap: 0; border-bottom: 2px solid #EDE7DB; margin-bottom: 20px; overflow-x: auto; }
+                .pt-tab { padding: 10px 18px; font-size: 13px; font-weight: 500; color: #6B7280; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.15s; }
+                .pt-tab:hover { color: #0F4C5C; }
+                .pt-tab.on { color: #0F4C5C; border-bottom-color: #0F4C5C; font-weight: 600; }
+                .pt-content { display: none; }
+                .pt-content.on { display: block; }
+                .pr { display: flex; gap: 10px; padding: 12px 0; border-bottom: 1px solid #EDE7DB; }
+                .pr:last-child { border-bottom: none; }
+                .pr-icon { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+                .pr-title { font-size: 14px; font-weight: 600; color: #1F2937; margin-bottom: 3px; }
+                .pr-detail { font-size: 13px; color: #6B7280; line-height: 1.5; }
+                .stab { width: 100%; border-collapse: collapse; }
+                .stab th { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; padding: 8px 10px; text-align: left; border-bottom: 2px solid #EDE7DB; }
+                .stab td { padding: 12px 10px; font-size: 13px; border-bottom: 1px solid #F7F1E8; vertical-align: top; }
+                .stab tr:last-child td { border-bottom: none; }
+                .cl-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #EDE7DB; }
+                .cl-item:last-child { border-bottom: none; }
+                .cb-box { width: 18px; height: 18px; border: 2px solid #6B7280; border-radius: 4px; flex-shrink: 0; margin-top: 1px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-size: 11px; }
+                .cb-box.done { background: #2D6A4F; border-color: #2D6A4F; color: white; }
+                .cl-text { font-size: 13px; color: #1F2937; line-height: 1.5; }
+                .pb { height: 6px; background: #EDE7DB; border-radius: 3px; overflow: hidden; margin-top: 6px; }
+                .pb-fill { height: 100%; background: #0F4C5C; border-radius: 3px; }
+                .pb-fill.gr { background: #2D6A4F; }
+                
+                .mt { display: flex; flex-direction: column; gap: 12px; }
+                .msg { max-width: 72%; }
+                .msg.p { align-self: flex-end; }
+                .msg.a { align-self: flex-start; }
+                .mb { padding: 12px 16px; border-radius: 16px; font-size: 14px; line-height: 1.5; text-align: left; }
+                .p .mb { background: #0F4C5C; color: #F7F1E8; border-bottom-right-radius: 4px; }
+                .a .mb { background: #FFFFFF; color: #1F2937; border: 1px solid rgba(15,76,92,0.1); border-bottom-left-radius: 4px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); }
+                .mm { font-size: 11px; color: #6B7280; margin-top: 4px; padding: 0 4px; }
+                .p .mm { text-align: right; }
+                .mir { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #EDE7DB; }
+                .mi { flex: 1; padding: 11px 16px; border: 1px solid rgba(15,76,92,0.15); border-radius: 8px; font-size: 14px; background: #F7F1E8; color: #1F2937; outline: none; }
+                .ms { background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 600; cursor: pointer; }
+                
+                .sl-row { margin-bottom: 18px; }
+                .sl-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+                .sl-name { font-size: 14px; font-weight: 500; color: #1F2937; }
+                .sl-val { font-size: 16px; font-weight: 700; color: #0F4C5C; font-family: 'Playfair Display', serif; }
+                input[type=range] { width: 100%; height: 4px; border-radius: 2px; background: #EDE7DB; appearance: none; outline: none; cursor: pointer; }
+                input[type=range]::-webkit-slider-thumb { appearance: none; width: 18px; height: 18px; background: #0F4C5C; border-radius: 50%; cursor: pointer; box-shadow: 0 1px 4px rgba(15,76,92,0.3); }
+                .cs-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; margin-bottom: 14px; margin-top: 24px; }
+                `
+            }} />
 
-            <div className="max-w-6xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 no-print">
-                    <div className="flex items-center gap-4">
-                        <Activity className="text-[#0F4C5C]" size={36} />
-                        <div>
-                            <h1 className="text-3xl font-black text-[#1F2937] tracking-tighter uppercase">ALLVI Dashboard</h1>
-                            <div className="flex gap-4 text-[11px] font-bold text-[#0F4C5C] uppercase tracking-tight">
-                                <span className="flex items-center gap-1"><UserCheck size={14} /> ID: {patientId}</span>
-                                <span>AGE: {demographics.age}</span>
-                                <span>GENDER: {demographics.gender}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex gap-3">
-                        <label className="bg-[#0F4C5C] text-[#F7F1E8] px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 cursor-pointer shadow-md">
-                            <FileUp size={18} /> Import additional data
-                            <input
-                                type="file"
-                                accept="., .pdf, application/pdf, text/csv"
-                                onChange={handleFileUpload}
-                                className="hidden"
-                            />
-                        </label>
-                        <button onClick={handleDownload} className="bg-[#1F2937] text-[#F7F1E8] px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-md">
-                            <Printer size={18} /> Download Report
-                        </button>
-                    </div>
+            {/* TOP BAR BRAND ENGINE NAVIGATION */}
+            <nav className="nav">
+                <div className="nav-logo">Allvi <span>Reimagined Patient Care</span></div>
+                <div className="nav-right">
+                    <div className="nav-streak">🔥 <strong>77</strong> day streak</div>
+                    <div className="nav-avatar">{demographics.name?.charAt(0) || 'R'}</div>
                 </div>
+            </nav>
 
-                <div ref={dashboardRef} id="dashboard-content" className="space-y-8 bg-[#F7F1E8]">
-                    <div className="hidden print-only flex-row justify-between items-center border-b-[1.5pt] border-black pb-4 mb-6">
-                        <div className="flex items-center gap-3">
-                            <Shield className="text-[#0F4C5C]" size={40} />
-                            <div>
-                                <h1 className="text-2xl font-black text-[#1F2937]">ALLVI HEALTH</h1>
-                                <p className="text-[10px] font-bold text-[#0F4C5C] uppercase tracking-widest">Clinical Analysis Report</p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <h2 className="text-lg font-black text-[#1F2937] uppercase">BIO-ANALYSIS SUMMARY</h2>
-                            <div className="text-[10px] font-bold text-[#1F2937]/50 uppercase mt-1">
-                                <span>Patient: {patientId}</span> | <span>Age: {demographics.age}</span> | <span>{demographics.gender}</span>
-                            </div>
-                            <div className="text-[9px] font-bold text-[#1F2937]/30 uppercase">Date: {new Date().toLocaleDateString()}</div>
-                        </div>
+            <div className="layout">
+                {/* EXACT REFERENCE SPECIFICATION COMPLIANT SIDEBAR */}
+                <aside className="sidebar no-print">
+                    <div className="si-section">Overview</div>
+                    <div className={`si ${currentScreen === 'dashboard' ? 'on' : ''}`} onClick={() => setCurrentScreen('dashboard')}>
+                        <span className="si-icon"><LayoutDashboard size={16} /></span> Dashboard
+                    </div>
+                    <div className={`si ${currentScreen === 'checkin' ? 'on' : ''}`} onClick={() => setCurrentScreen('checkin')}>
+                        <span className="si-icon"><CheckSquare size={16} /></span> Daily Check-In
                     </div>
 
-                    <PatientReviewView reviews={data.specialistReviews} />
+                    <div className="si-section">Reports</div>
+                    <div className={`si ${currentScreen === 'reports' ? 'on' : ''}`} onClick={() => setCurrentScreen('reports')}>
+                        <span className="si-icon"><ClipboardList size={16} /></span> Weekly Reports
+                    </div>
+                    <div className={`si ${currentScreen === 'advocacy' ? 'on' : ''}`} onClick={() => setCurrentScreen('advocacy')}>
+                        <span className="si-icon"><FileText size={16} /></span> Advocacy Doc
+                    </div>
 
-                    <IntakeSummary intake={intakeData} />
+                    <div className="si-section">Health</div>
+                    <div className={`si ${currentScreen === 'labs' ? 'on' : ''}`} onClick={() => setCurrentScreen('labs')}>
+                        <span className="si-icon"><FlaskConical size={16} /></span> Lab Results
+                    </div>
+                    <div className={`si ${currentScreen === 'protocol' ? 'on' : ''}`} onClick={() => setCurrentScreen('protocol')}>
+                        <span className="si-icon"><BookOpen size={16} /></span> My Protocol
+                    </div>
 
-                    <section className="print-full-width">
-                        <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest mb-4">Biomarker Trends & Lab Ranges</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 print:block">
-                            {getDynamicBiomarkers().map(markerKey => (
-                                <ChartCard key={markerKey} title={markerKey} dataKey={markerKey} color="#0F4C5C" data={data.labs} />
-                            ))}
-                        </div>
-                    </section>
+                    <div className="si-section">Support</div>
+                    <div className={`si ${currentScreen === 'messages' ? 'on' : ''}`} onClick={() => setCurrentScreen('messages')}>
+                        <span className="si-icon"><MessageSquare size={16} /></span> Messages
+                    </div>
+                    <div className="si" onClick={() => setIsModalOpen(true)}>
+                        <span className="si-icon"><PhoneCall size={16} /></span> Book a Call
+                    </div>
+                </aside>
 
-                    <section className="print-full-width" style={{ breakInside: 'avoid' }}>
-                        <div className="bg-white p-6 rounded-xl border border-black/10 print:border-black print:border-[0.5pt] shadow-sm">
-                            <LabAnalysis
-                                labData={getMergedLabData()}
-                                patientGoal={demographics.goal || 'general'}
-                                patientLabRanges={data.labRanges || {}}
-                            />
-                        </div>
-                    </section>
+                {/* PRIMARY SYSTEM SUB-SCREEN LAYER INTERACTION */}
+                <main className="main">
+                    
+                    {/* ═══════════════════════ SCREEN 1: CORE DASHBOARD HUB ═══════════════════════ */}
+                    {currentScreen === 'dashboard' && (
+                        <>
+                            <div className="ph">
+                                <h1 className="ph-title">Hello, {demographics.name || 'Patient'}</h1>
+                                <p className="ph-sub">Baseline Protocol Registry ID: <strong>{activePatientId}</strong> • Monitor Core Focus: <span style={{ color: '#0F4C5C', fontWeight: 600, textTransform: 'uppercase' }}>{demographics.goal || 'General Health'}</span></p>
+                            </div>
 
-                    <section className="print-full-width" style={{ breakInside: 'avoid' }}>
-                        <div className="flex justify-between items-center mb-4">
-                            <h2 className="text-[11px] font-black text-[#1F2937]/40 uppercase tracking-widest">
-                                Symptom Correlation Trends
-                            </h2>
-                            <label className="cursor-pointer bg-slate-100 hover:bg-slate-200 px-3 py-1 rounded text-[10px] font-bold uppercase transition-colors">
-                                Upload CSV
-                                <input
-                                    type="file"
-                                    accept=".csv"
-                                    className="hidden"
-                                    onChange={handleFileUpload}
-                                />
-                            </label>
-                        </div>
+                            <div className="cb" onClick={() => setCurrentScreen('checkin')}>
+                                <div>
+                                    <h3>Today's check-in is ready</h3>
+                                    <p>Takes under 3 minutes · Personalised from yesterday's entry</p>
+                                </div>
+                                <button className="cb-btn">Check In Now →</button>
+                            </div>
 
-                        <div className="bg-white p-6 rounded-xl border border-black/10 shadow-sm">
-                            <div style={{ width: '100%', height: 320, minHeight: 320 }}>
-                                {isMounted && data.symptoms && data.symptoms.length > 0 ? (
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <LineChart data={data.symptoms} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                                            <XAxis
-                                                dataKey="date"
-                                                tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }}
-                                                tickFormatter={(str) => new Date(str).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                                            />
-                                            <YAxis domain={[0, 10]} tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }} />
-                                            <Tooltip
-                                                contentStyle={{ borderRadius: '12px', backgroundColor: '#1F2937', color: '#fff', border: 'none' }}
-                                            />
-                                            <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: 'bold', paddingTop: '20px' }} />
-                                            <Line type="monotone" dataKey="energy" stroke="#0F4C5C" strokeWidth={2} dot={{ r: 3 }} name="Energy" />
-                                            <Line type="monotone" dataKey="mood" stroke="#7c3aed" strokeWidth={2} dot={{ r: 3 }} name="Mood" />
-                                            <Line type="monotone" dataKey="sleep" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} name="Sleep" />
-                                            <Line type="monotone" dataKey="stress" stroke="#dc2626" strokeWidth={2} dot={{ r: 3 }} name="Stress" />
-                                            <Line type="monotone" dataKey="joint_pain" stroke="#be185d" strokeWidth={2} dot={{ r: 3 }} name="Joint Pain" />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                ) : (
-                                    <div className="h-full flex flex-col items-center justify-center text-slate-400 gap-2">
-                                        <Activity size={32} className="opacity-20" />
-                                        <p className="text-xs font-bold uppercase tracking-widest">No symptom data recorded</p>
-                                        <p className="text-[10px]">Upload a CSV to visualize progress</p>
+                            {/* DYNAMIC METRIC KPI CONTAINER CONNECTED TO BACKEND TELEMETRY SENSORS */}
+                            <div className="g4">
+                                <div className="kpi">
+                                    <div className="kpi-label">Energy</div>
+                                    <div className="kpi-val">{dynamicEnergy}</div>
+                                    <div className="kpi-sub">{evaluateTrend(dynamicEnergy, historicalSymptomRow, 'energy')}</div>
+                                </div>
+                                <div className="kpi gr">
+                                    <div className="kpi-label">Mood</div>
+                                    <div className="kpi-val gr">{dynamicMood}</div>
+                                    <div className="kpi-sub">{evaluateTrend(dynamicMood, historicalSymptomRow, 'mood')}</div>
+                                </div>
+                                <div className="kpi gr">
+                                    <div className="kpi-label">Sleep</div>
+                                    <div className="kpi-val gr">{dynamicSleep}</div>
+                                    <div className="kpi-sub">{evaluateTrend(dynamicSleep, historicalSymptomRow, 'sleep')}</div>
+                                </div>
+                                <div className="kpi am">
+                                    <div className="kpi-label">Stress</div>
+                                    <div className="kpi-val am">{dynamicStress}</div>
+                                    <div className="kpi-sub" style={{ color: dynamicStress <= 2 ? '#2D6A4F' : '#9B2226' }}>
+                                        {dynamicStress <= 1.5 && latestSymptomRow ? "↓ programme low" : evaluateTrend(dynamicStress, historicalSymptomRow, 'stress')}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="g2">
+                                <div className="card">
+                                    <div className="card-title">11-Week Trend</div>
+                                    <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7280' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0F4C5C' }}></div>Energy</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7280' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#2D6A4F' }}></div>Mood</div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7280' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#C97B2E' }}></div>Sleep</div>
+                                    </div>
+                                    <div style={{ width: '100%', height: 160 }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <LineChart data={data.symptoms?.length ? data.symptoms : [
+                                                { date: 'W1', energy: 5, mood: 4, sleep: 4 },
+                                                { date: 'W3', energy: 6.4, mood: 4.9, sleep: 3.2 },
+                                                { date: 'W5', energy: 7, mood: 4.9, sleep: 3.8 },
+                                                { date: 'W7', energy: 5.7, mood: 5.4, sleep: 8 },
+                                                { date: 'W9', energy: 8, mood: 6.4, sleep: 3.8 },
+                                                { date: 'W11', energy: 7.8, mood: 8.4, sleep: 9.2 }
+                                            ]} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" stroke="#EDE7DB" vertical={false} />
+                                                <XAxis dataKey="date" tick={{ fontSize: 9, fill: '#6B7280' }} />
+                                                <YAxis domain={[0, 10]} tick={{ fontSize: 9, fill: '#6B7280' }} />
+                                                <Line connectNulls type="monotone" dataKey="energy" stroke="#0F4C5C" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                                                <Line connectNulls type="monotone" dataKey="mood" stroke="#2D6A4F" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                                                <Line connectNulls type="monotone" dataKey="sleep" stroke="#C97B2E" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                <div className="card">
+                                    <div className="card-title">Patterns & Insights</div>
+                                    <div className="ic gr"><div className="ic-tag gr">✓ Positive</div><div className="ic-title">Stress at programme low</div><div className="ic-body">1.2 — lowest in 11 weeks. Even with GI changes, your nervous system is stable.</div></div>
+                                    <div className="ic am"><div className="ic-tag am">⚠ Watch</div><div className="ic-title">Evening exercise timing</div><div className="ic-body">Sat evening pickleball → Sun energy 7. Daytime sessions perform better for you.</div></div>
+                                    <div className="ic am"><div className="ic-tag am">⚠ Monitor</div><div className="ic-title">GI — iron protocol Week 1</div><div className="ic-body">Expected adjustment. Increase hydration on iron days. Should resolve by Week 2.</div></div>
+                                </div>
+                            </div>
+
+                            <PatientReviewView reviews={data.specialistReviews} />
+                            <IntakeSummary intake={intakeData} />
+
+                            {/* RESTORED: LONGITUDINAL PANEL TRACKING TIMELINE GRID SECTION */}
+                            <section style={{ marginBottom: '24px' }}>
+                                <div style={{ borderBottom: '1px solid #EDE7DB', paddingBottom: '6px', marginBottom: '16px' }}>
+                                    <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.05em' }}>Longitudinal Panel Tracking Timeline</h2>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    {getDynamicBiomarkers().map(markerKey => (
+                                        <ChartCard key={markerKey} title={markerKey} dataKey={markerKey} color="#0F4C5C" data={data.labs} />
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="card" style={{ marginBottom: '24px' }}>
+                                <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
+                            </section>
+
+                            <section className="card">
+                                <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
+                            </section>
+
+                            <div style={{ textAlign: 'center', marginTop: '32px' }}>
+                                <button
+                                    disabled={isGeneratingSummary}
+                                    onClick={async () => {
+                                        setIsGeneratingSummary(true);
+                                        try {
+                                            const response = await axios.get(`${baseURL}/api/patient/insights/${activePatientId}`);
+                                            navigate(`/clinical-summary/${activePatientId}`, {
+                                                state: {
+                                                    profile: demographics,
+                                                    intake: intakeData,
+                                                    labData: getMergedLabData(),
+                                                    aiInsights: response.data.success ? response.data.insights : "AI Engine payload execution unfulfilled."
+                                                }
+                                            });
+                                        } catch (err) {
+                                            alert("Strategic diagnostic meta vectors calculation sequence broken.");
+                                        } finally {
+                                            setIsGeneratingSummary(false);
+                                        }
+                                    }}
+                                    className="sub-btn"
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: 8, maxWidth: '340px' }}
+                                >
+                                    {isGeneratingSummary ? <Loader2 className="animate-spin" size={16} /> : <FilePlus size={16} />}
+                                    {isGeneratingSummary ? "Compiling Meta Vectors..." : "Generate Clinical Summary"}
+                                </button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 2: DAILY CHECK-IN FORM ═══════════════════════ */}
+                    {currentScreen === 'checkin' && (
+                        <>
+                            <div className="ph">
+                                <div className="ph-title">Daily Check-In</div>
+                                <div className="ph-sub">Sunday, 11 May 2026 · Yesterday you mentioned constipation. How are you feeling today?</div>
+                            </div>
+                            <div className="card">
+                                <div className="cs-title" style={{ marginTop: 0 }}>How are you feeling today?</div>
+                                <div className="sl-row">
+                                    <div className="sl-label"><span className="sl-name">⚡ Energy</span><span className="sl-val">{checkinForm.energy}</span></div>
+                                    <input type="range" min="1" max="10" value={checkinForm.energy} onChange={e => setCheckinForm({ ...checkinForm, energy: parseInt(e.target.value) })} />
+                                    <div style={{ display: 'flex', justifyBetween: 'space-between', fontSize: '10px', color: '#6B7280', marginTop: '4px' }}><span>Low</span><span style={{ marginLeft: 'auto' }}>High</span></div>
+                                </div>
+                                <div className="sl-row">
+                                    <div className="sl-label"><span className="sl-name">♥ Mood</span><span className="sl-val">{checkinForm.mood}</span></div>
+                                    <input type="range" min="1" max="10" value={checkinForm.mood} onChange={e => setCheckinForm({ ...checkinForm, mood: parseInt(e.target.value) })} />
+                                    <div style={{ display: 'flex', justifyBetween: 'space-between', fontSize: '10px', color: '#6B7280', marginTop: '4px' }}><span>Low</span><span style={{ marginLeft: 'auto' }}>High</span></div>
+                                </div>
+                                <div className="sl-row">
+                                    <div className="sl-label"><span className="sl-name">🌙 Sleep quality</span><span className="sl-val">{checkinForm.sleep}</span></div>
+                                    <input type="range" min="1" max="10" value={checkinForm.sleep} onChange={e => setCheckinForm({ ...checkinForm, sleep: parseInt(e.target.value) })} />
+                                    <div style={{ display: 'flex', justifyBetween: 'space-between', fontSize: '10px', color: '#6B7280', marginTop: '4px' }}><span>Poor</span><span style={{ marginLeft: 'auto' }}>Excellent</span></div>
+                                </div>
+                                <div className="sl-row">
+                                    <div className="sl-label"><span className="sl-name">🍃 Stress</span><span className="sl-val">{checkinForm.stress}</span></div>
+                                    <input type="range" min="1" max="10" value={checkinForm.stress} onChange={e => setCheckinForm({ ...checkinForm, stress: parseInt(e.target.value) })} />
+                                    <div style={{ display: 'flex', justifyBetween: 'space-between', fontSize: '10px', color: '#6B7280', marginTop: '4px' }}><span>None</span><span style={{ marginLeft: 'auto' }}>High</span></div>
+                                </div>
+
+                                <div className="cs-title">Symptoms today</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                                    {['Fatigue', 'Constipation', 'Brain fog', 'Feeling cold', 'Joint pain', 'Hair loss', 'Anxiety', 'Low mood', 'Palpitations'].map(sym => {
+                                        const hasSym = checkinForm.symptoms.includes(sym);
+                                        return (
+                                            <div key={sym} className={`pill ${hasSym ? 'on' : ''}`} onClick={() => {
+                                                const next = hasSym ? checkinForm.symptoms.filter(x => x !== sym) : [...checkinForm.symptoms, sym];
+                                                setCheckinForm({ ...checkinForm, symptoms: next });
+                                            }}>{sym}</div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="cs-title">Bowel movement today?</div>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '14px' }}>
+                                    <div className="do on">Yes</div><div className="do">No</div>
+                                </div>
+
+                                <div style={{ fontSize: '13px', fontWeight: 500, color: '#1F2937', marginBottom: '8px' }}>Bristol Stool Scale</div>
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                                    {['Type 1', 'Type 2', 'Type 3', 'Type 4 ✓', 'Type 5', 'Type 6', 'Type 7'].map(type => (
+                                        <div key={type} className={`do ${type.includes('Type 2') ? 'on' : ''}`}>{type}</div>
+                                    ))}
+                                </div>
+
+                                <div className="cs-title">Anything else to note?</div>
+                                <p style={{ fontSize: '13px', color: '#6B7280', marginBottom: '10px', fontStyle: 'italic' }}>Yesterday you mentioned the iron felt constipating. Any change today?</p>
+                                <textarea className="ta" value={checkinForm.notes} onChange={e => setCheckinForm({ ...checkinForm, notes: e.target.value })} />
+                                
+                                <button className="sub-btn" onClick={handleCheckinSubmit}>Submit Check-In ✓</button>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 3: WEEKLY REPORT SCREEN (DYNAMIC & SYNCED) ═══════════════════════ */}
+                    {currentScreen === 'reports' && (
+                        <>
+                            <div className="ph">
+                                <div className="ph-title">Week 11 Report</div>
+                                <div className="ph-sub">April 22–26, 2026 · Compiled tracking records matrix view</div>
+                            </div>
+                            <div className="rh">
+                                <div className="rw">Week 11 Performance</div>
+                                <div className="rm">Aggregated telemetry values directly populated from your actual active logs database history.</div>
+                                <div className="rk">
+                                    <div className="rkc">
+                                        <div className="rkv gr">{dynamicEnergy}</div>
+                                        <div className="rkl">Energy</div>
+                                        <div className="rkd" style={{ color: '#6B7280' }}>
+                                            {evaluateTrend(dynamicEnergy, historicalSymptomRow, 'energy')}
+                                        </div>
+                                    </div>
+                                    <div className="rkc">
+                                        <div className="rkv gr">{dynamicMood}</div>
+                                        <div className="rkl">Mood</div>
+                                        <div className="rkd" style={{ color: '#2D6A4F' }}>
+                                            {evaluateTrend(dynamicMood, historicalSymptomRow, 'mood')}
+                                        </div>
+                                    </div>
+                                    <div className="rkc">
+                                        <div className="rkv gr">{dynamicSleep}</div>
+                                        <div className="rkl">Sleep</div>
+                                        <div className="rkd" style={{ color: '#6B7280' }}>
+                                            {evaluateTrend(dynamicSleep, historicalSymptomRow, 'sleep')}
+                                        </div>
+                                    </div>
+                                    <div className="rkc">
+                                        <div className="rkv am">{dynamicStress}</div>
+                                        <div className="rkl">Stress</div>
+                                        <div className="rkd" style={{ color: dynamicStress <= 1.5 ? '#2D6A4F' : '#9B2226' }}>
+                                            {dynamicStress <= 1.5 && latestSymptomRow ? "↓ program low" : evaluateTrend(dynamicStress, historicalSymptomRow, 'stress')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <div className="card-title">Clinical Monitoring Indicators</div>
+                                <div className="dr"><div className="ds gr">🟢</div><div><div className="dn">Medication Response Metric <span className="dbadge gr">Active</span></div><div className="dd">Thyroid values remain stable based on merged profile diagnostics. Palpitations and sweating resolved. Keep current dosage structure.</div></div></div>
+                                <div className="dr"><div className="ds am">🟡</div><div><div className="dn">Gut Motility Adjustment <span className="dbadge am">Monitoring</span></div><div className="dd">Iron protocol absorption phase introduction remains active. Hydration should be tracked closely on alternate days.</div></div></div>
+                            </div>
+
+                            <div className="card" style={{ marginTop: '24px' }}>
+                                <div className="card-title">Active Timeline Structural Analysis</div>
+                                <div className="ic gr"><div className="ic-tag gr">✓ Baseline Ingestion Check</div><div className="ic-title">Nervous system holding optimal metrics</div><div className="ic-body">Dynamic stress factors average stays balanced at {dynamicStress}, demonstrating positive program adaptation thresholds.</div></div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 4: ADVOCACY DOC SCREEN ═══════════════════════ */}
+                    {currentScreen === 'advocacy' && (
+                        <>
+                            <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                                <div>
+                                    <div className="ph-title">Appointment Advocacy Document</div>
+                                    <div className="ph-sub">Prepared for Endocrinologist Consultation · April 15, 2026</div>
+                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', padding: '4px 12px', background: '#EAF5EE', borderRadius: '20px' }}><span style={{ fontSize: '11px', fontWeight: 700, color: '#2D6A4F' }}>✓ CLINICIAN APPROVED</span></div>
+                                </div>
+                                <button className="btn-primary" onClick={() => window.print()}>⬇ Download PDF</button>
+                            </div>
+
+                            <div className="card">
+                                <div className="avs-title">Patient Context</div>
+                                <table className="avt">
+                                    <tbody>
+                                        <tr><td>Diagnosis</td><td>Hashimoto's Thyroiditis — January 2026</td></tr>
+                                        <tr><td>Medication</td><td>Levothyroxine 25mcg daily (taken 6am). Day 45 as of April 14.</td></tr>
+                                        <tr><td>Supplements</td><td>Selenium, Magnesium glycinate, B12+K2, Omega-3, Multivitamin, Iron 25mg, Zinc 15mg, Curcumin 500mg</td></tr>
+                                    </tbody>
+                                </table>
+
+                                <div className="avs-title" style={{ marginTop: '24px' }}>Questions for This Consultation</div>
+                                <div className="qn"><div className="qn-num">1</div><div className="qn-text"><strong>Iron supplementation:</strong> is 25mg ferrous bisglycinate sufficient? Ferritin declined from 24 → 19 ng/mL over 2.5 months of supplementation.</div></div>
+                                <div className="qn"><div className="qn-num">2</div><div className="qn-text"><strong>Should ferritin be rechecked sooner than May?</strong> Ferritin moved in the wrong direction on current supplementation.</div></div>
+                                <div className="qn"><div className="qn-num">3</div><div className="qn-text"><strong>Levothyroxine dose:</strong> does TSH 2.13 change your recommendation? Patient self-titrated to 25mcg from prescribed 50mcg.</div></div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 5: MY PROTOCOL SCREEN ═══════════════════════ */}
+                    {currentScreen === 'protocol' && (
+                        <>
+                            <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div><div className="ph-title">My Protocol</div><div className="ph-sub">Personalised Lifestyle Support · Hashimoto's · Delivered Week 2</div></div>
+                                <button className="btn-primary">⬇ Download PDF</button>
+                            </div>
+
+                            <div className="card" style={{ background: '#0F4C5C', border: 'none', color: '#F7F1E8' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+                                    <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)' }}>Diagnosis</div><div style={{ fontSize: '14px', fontWeight: 600 }}>Hashimoto's Thyroiditis</div></div>
+                                    <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)' }}>Primary Goals</div><div style={{ fontSize: '13px' }}>Improve GI · Slow autoimmune attack</div></div>
+                                </div>
+                            </div>
+
+                            <div className="card">
+                                <div className="pt-tabs">
+                                    <div className={`pt-tab ${activeProtocolTab === 'nut' ? 'on' : ''}`} onClick={() => setActiveProtocolTab('nut')}>🥗 Nutrition</div>
+                                    <div className={`pt-tab ${activeProtocolTab === 'sup' ? 'on' : ''}`} onClick={() => setActiveProtocolTab('sup')}>💊 Supplements</div>
+                                </div>
+
+                                {activeProtocolTab === 'nut' && (
+                                    <div className="pt-content on">
+                                        <div className="pr"><div className="pr-icon">🚫</div><div><div className="pr-title">Always avoid: Gluten, dairy, soy, refined sugar</div><div className="pr-detail">Gluten triggers molecular mimicry with thyroid tissue. Your dramatic improvement confirms these were key triggers.</div></div></div>
+                                        <div className="pr"><div className="pr-icon">🐟</div><div><div className="pr-title">Protein at every meal — 20–30g target</div><div className="pr-detail">Wild-caught fish, pasture-raised poultry. Protein supports thyroid hormone production.</div></div></div>
+                                    </div>
+                                )}
+
+                                {activeProtocolTab === 'sup' && (
+                                    <div className="pt-content on">
+                                        <table className="stab">
+                                            <thead><tr><th>Supplement</th><th>Dose</th><th>Why</th></tr></thead>
+                                            <tbody>
+                                                <tr><td style={{ fontWeight: 600 }}>Selenium</td><td>200mcg</td><td>T4→T3 conversion; reduces TPO antibodies</td></tr>
+                                                <tr><td style={{ fontWeight: 600 }}>Magnesium glycinate</td><td>300–400mg</td><td>Sleep, mood, gut motility</td></tr>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 )}
                             </div>
-                        </div>
-                    </section>
+                        </>
+                    )}
 
-                    <section className="print-full-width">
-                        <div className="bg-white p-6 rounded-xl border border-black/10 print:border-black print:border-[0.5pt] shadow-sm">
-                            <AIInsights
-                                patientId={patientId}
-                                labData={getMergedLabData()}
-                                patientGoal={demographics.goal || 'general'}
-                                demographics={demographics}
-                                intake={intakeData}
-                            />
-                        </div>
-                    </section>
-
-                    <section className="no-print pt-8 flex justify-center">
-                        <button
-                            disabled={isGeneratingSummary}
-                            onClick={async () => {
-                                setIsGeneratingSummary(true);
-                                try {
-                                    const response = await axios.get(`${baseURL}/api/patient/insights/${patientId}`);
-                                    const generatedInsights = response.data.success ? response.data.insights : "AI Analysis unavailable.";
-
-                                    navigate(`/clinical-summary/${patientId}`, {
-                                        state: {
-                                            profile: demographics,
-                                            intake: intakeData,
-                                            labData: getMergedLabData(),
-                                            aiInsights: generatedInsights
-                                        }
-                                    });
-                                } catch (err) {
-                                    console.error("Failed to generate insights:", err);
-                                    alert("Failed to generate AI insights. Please try again.");
-                                } finally {
-                                    setIsGeneratingSummary(false);
-                                }
-                            }}
-                            className={`px-8 py-5 rounded-2xl font-black uppercase text-sm tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl w-full max-w-lg ${isGeneratingSummary
-                                ? 'bg-gray-400 text-white cursor-not-allowed'
-                                : 'bg-[#0F4C5C] text-[#F7F1E8] hover:scale-[1.02] active:scale-95'
-                                }`}
-                        >
-                            {isGeneratingSummary ? (
-                                <><Loader2 className="animate-spin" size={22} /> Analyzing Patient Data...</>
-                            ) : (
-                                <><FilePlus size={22} /> Generate Clinical Summary</>
-                            )}
-                        </button>
-                    </section>
-
-                    <section className="no-print pt-8 pb-12">
-                        <div className="bg-[#0F4C5C] rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between shadow-2xl shadow-[#0F4C5C]/20 border border-white/10">
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-[#F7F1E8] text-[#0F4C5C] px-8 mb-4 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 shadow-xl"
-                            >
-                                <Calendar size={18} /> Request an Appointment
-                            </button>
-                            <button
-                                onClick={() => setIsModalOpen(true)}
-                                className="bg-[#F7F1E8] text-[#0F4C5C] px-8 py-4 rounded-2xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] active:scale-95 transition-all flex items-center gap-2 shadow-xl"
-                            >
-                                <Calendar size={18} /> Ask us anything
-                            </button>
-                        </div>
-                    </section>
-                </div>
+                    {/* ═══════════════════════ SCREEN 6: MESSAGES SCREEN ═══════════════════════ */}
+                    {currentScreen === 'messages' && (
+                        <>
+                            <div className="ph">
+                                <div className="ph-title">Messages</div>
+                                <div className="ph-sub">Your Allvi care team · Responds within 24 hours</div>
+                            </div>
+                            <div className="card">
+                                <div className="mt" style={{ display: 'flex', flexDirection: 'column' }}>
+                                    <div className="msg p"><div className="mb">I think the iron is constipating me. Should I stop taking it?</div><div className="mm">Rashmi · Sat 25 Apr, 2:14pm</div></div>
+                                    <div className="msg a"><div className="mb">Don't stop — this is expected in the first 1–2 weeks on 50mg. Iron draws water into the colon and slows gut motility, especially at this dose. You're on ferrous bisglycinate which has the lowest GI side effect profile available.</div><div className="mm">Allvi Care Team · Sat 25 Apr, 4:02pm</div></div>
+                                </div>
+                                <div className="mir">
+                                    <input className="mi" type="text" placeholder="Ask anything — protocol questions, symptoms, what a result means…" />
+                                    <button className="ms">Send</button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </main>
             </div>
 
+            {/* CLINICAL INQUIRY ACTION TERMINAL OVERLAY */}
             {isModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-6 no-print">
-                    <div className="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
-                        <div className="bg-[#0F4C5C] p-6 text-white flex justify-between items-center">
-                            <div className="flex items-center gap-2">
-                                <Calendar size={20} />
-                                <h3 className="font-black uppercase tracking-widest text-sm">Appointment Request</h3>
-                            </div>
-                            <button onClick={() => setIsModalOpen(false)} className="hover:bg-white/10 p-1 rounded-lg transition-colors">
-                                <X size={20} />
-                            </button>
+                <div className="no-print" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(31,41,55,0.6)', backdropFilter: 'blur(4px)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+                    <div className="card" style={{ width: '100%', maxWidth: '460px', padding: 0, overflow: 'hidden' }}>
+                        <div style={{ backgroundColor: '#0F4C5C', padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#FFFFFF' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}><Calendar size={18} /><h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: '16px', fontWeight: 600, margin: 0 }}>Clinical Support Pipeline</h3></div>
+                            <button onClick={() => setIsModalOpen(false)} style={{ background: 'none', border: 'none', color: '#FFFFFF', cursor: 'pointer' }}><X size={20} /></button>
                         </div>
-                        <div className="p-8">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">
-                                Share your notes or questions
-                            </label>
-                            <textarea
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                                placeholder="E.g., I'm concerned about my thyroid levels or energy drops..."
-                                className="w-full h-32 p-4 bg-[#F7F1E8]/50 rounded-2xl border border-slate-200 outline-none focus:ring-2 focus:ring-[#0F4C5C] transition-all text-sm font-medium resize-none text-[#1F2937]"
-                            />
-                            <button
-                                onClick={handleAppointmentSubmit}
-                                disabled={sending}
-                                className="w-full mt-6 bg-[#1F2937] text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-[#0F4C5C] transition-all disabled:opacity-50"
-                            >
-                                {sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-                                {sending ? "Sending Request..." : "Submit Request"}
+                        <div style={{ padding: '24px' }}>
+                            <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', marginBottom: '8px' }}>Operational Inquiry Parameters</label>
+                            <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Detail current tracking status updates or programmatic clinical inquiries..." className="ta" style={{ width: '100%', minHeight: '120px', marginBottom: '16px' }} />
+                            <button onClick={handleAppointmentSubmit} disabled={sending || !notes.trim()} className="sub-btn" style={{ opacity: (sending || !notes.trim()) ? 0.6 : 1 }}>
+                                {sending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Submit Message Parameters
                             </button>
                         </div>
                     </div>

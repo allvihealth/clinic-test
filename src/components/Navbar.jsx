@@ -84,7 +84,7 @@ const Navbar = () => {
         {/* RIGHT GROUP (Desktop) */}
         <div className="nav-links-desktop" style={styles.desktopRightGroup}>
           <div style={styles.navGroup}>
-            <NavLink to="/phase1upload" style={navLinkStyle}><Upload size={16} /> Upload</NavLink>
+           
             <NavLink to="/admin" style={navLinkStyle}><Users size={16} /> AdminPortal</NavLink>
             
             {/* NEW CLINICAL TEST NAVLINK - Navigates to Clinical Login Page */}
@@ -121,9 +121,8 @@ const Navbar = () => {
         {/* MOBILE DROPDOWN */}
         {isOpen && (
           <div className="nav-links-mobile" style={styles.mobileNavGroup}>
-            <NavLink to="/phase1upload" style={navLinkStyle} onClick={() => setIsOpen(false)}>
-                <Upload size={18} /> Upload Report
-            </NavLink>
+            
+            
             <NavLink to="/admin" style={navLinkStyle} onClick={() => setIsOpen(false)}>
                 <Users size={18} /> Admin Portal
             </NavLink>
