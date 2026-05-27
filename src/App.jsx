@@ -49,10 +49,10 @@ function App() {
   return (
     <div className="app-container" style={{ minHeight: '100vh', backgroundColor: "#F7F1E8" }}>
       
-      {/* Conditionally render Navbar based on current pathname */}
-      {shouldShowNavbar && <Navbar />}
+     {/* Conditionally render Navbar based on current pathname */}
+      {/*shouldShowNavbar && <Navbar />*/} 
 
-      <main style={{ padding: '20px' }}>
+      <main style={{  }}>
         <Routes>
           {/* Public Access to All Routes */}
           <Route path="/" element={<UserPortal />} />

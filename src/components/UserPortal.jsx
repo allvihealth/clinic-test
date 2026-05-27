@@ -4,7 +4,7 @@ import { Mail, Lock, ArrowRight, AlertCircle, Loader2, Check, User } from 'lucid
 import axios from 'axios';
 
 const UserPortal = () => {
-    const [view, setView] = useState('login'); 
+    const [view, setView] = useState('signup');
 
     // Generalized combined single login state hook parameter
     const [loginIdentifier, setLoginIdentifier] = useState('');
@@ -175,8 +175,11 @@ const UserPortal = () => {
                     <span style={{ fontSize: '12px', fontWeight: 700, color: styles.green }}>Invitation Setup Mode</span>
                 </div>
 
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 600, color: styles.charcoal, marginBottom: '8px', lineHeight: 1.3 }}>Welcome to Allvi</h2>
-                <p style={{ fontSize: '14px', color: styles.grey, marginBottom: '28px', lineHeight: 1.6 }}>Provide your enrollment details to set up your password securely and unlock the multi-step intake process.</p>
+                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 600, color: styles.charcoal, marginBottom: '8px', lineHeight: 1.3 }}>Welcome to Allvi, <br/>Rashmi</h2>
+                <p style={{ fontSize: '14px', color: 'var(--grey)', marginBottom: '28px', lineHeight: '1.6' }}>
+                    You have been enrolled by <strong style={{ color: 'var(--charcoal)' }}>Greenfield Endocrinology</strong>.
+                    Set your password to activate your account and start your care program.
+                </p>
 
                 <form onSubmit={handleActivationSubmit}>
                     <div style={{ marginBottom: '16px' }}>
@@ -228,9 +231,10 @@ const UserPortal = () => {
                         type="submit"
                         disabled={loading}
                         className="w-full bg-[#0F4C5C] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0d3b47] transition-all shadow-lg disabled:opacity-70"
-                            >
-                                {loading ? <Loader2 className="animate-spin" size={18} /> : <>Signup →</>}
+                    >
+                        {loading ? <Loader2 className="animate-spin" size={18} /> : <>Activate Account →</>}
                     </button>
+                    
 
                     <button
                         type="button"
@@ -240,9 +244,12 @@ const UserPortal = () => {
                     >
                         Already activated? Login →
                     </button>
+                    <p style={{ textAlign: 'center', fontSize: '12px', color: 'var(--grey)', marginTop: '20px', lineHeight: '1.5' }}>
+                        By activating you agree to Allvi's <span style={{ color: 'var(--teal)', cursor: 'pointer' }}>Privacy Policy</span> and <span style={{ color: 'var(--teal)', cursor: 'pointer' }}>Terms of Service</span>.
+                    </p>
                 </form>
             </div>
-            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒Allvi Encrypted · Secure</div>
+            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒 HIPAA-compliant · Encrypted · Secure</div>
         </div>
     );
 };
