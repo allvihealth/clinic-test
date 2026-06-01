@@ -172,7 +172,7 @@ const UserPortal = () => {
             <div style={{ backgroundColor: styles.white, borderRadius: '16px', padding: '40px', width: '100%', maxWidth: '440px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.05)', border: '1px solid rgba(15, 76, 92, 0.06)' }}>
                 <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: styles.greenBg, borderRadius: '20px', padding: '5px 14px', marginBottom: '24px' }}>
                     <Check size={12} color={styles.green} strokeWidth={3} />
-                    <span style={{ fontSize: '12px', fontWeight: 700, color: styles.green }}>Invitation Setup Mode</span>
+                    <span style={{ fontSize: '12px', fontWeight: 700, color: styles.green }}>Invitation confirmed</span>
                 </div>
 
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 600, color: styles.charcoal, marginBottom: '8px', lineHeight: 1.3 }}>Welcome to Allvi, <br/>Rashmi</h2>
@@ -183,7 +183,7 @@ const UserPortal = () => {
 
                 <form onSubmit={handleActivationSubmit}>
                     <div style={{ marginBottom: '16px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: styles.grey, display: 'block', marginBottom: '6px' }}>Your Enrolled Email Address *</label>
+                        <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: styles.grey, display: 'block', marginBottom: '6px' }}>Your email</label>
                         <input
                             type="email"
                             placeholder="e.g., name@email.com"
@@ -230,7 +230,7 @@ const UserPortal = () => {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-[#0F4C5C] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0d3b47] transition-all shadow-lg disabled:opacity-70"
+                        className="w-full bg-[#0F4C5C] text-white py-4 rounded-2xl font-black text-xs tracking-widest flex items-center justify-center gap-2 hover:bg-[#0d3b47] transition-all shadow-lg disabled:opacity-70"
                     >
                         {loading ? <Loader2 className="animate-spin" size={18} /> : <>Activate Account →</>}
                     </button>
@@ -249,7 +249,7 @@ const UserPortal = () => {
                     </p>
                 </form>
             </div>
-            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒 HIPAA-compliant · Encrypted · Secure</div>
+            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒 GDPR-compliant HIPAA-compliant · Encrypted · Secure</div>
         </div>
     );
 };
