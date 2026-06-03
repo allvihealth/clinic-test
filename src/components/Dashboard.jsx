@@ -6,7 +6,7 @@ import Papa from 'papaparse';
 import {
     Activity, FileUp, Info, Calendar, Send, X, Loader2, FlaskConical, Search,
     ChevronDown, ChevronUp, AlertTriangle, ClipboardList, FilePlus, CheckCircle2,
-    FileText, LayoutDashboard, CheckSquare, BarChart2, BookOpen, MessageSquare, PhoneCall, Printer, LogOut, Menu,PanelLeftOpen,PanelLeftClose
+    FileText, LayoutDashboard, CheckSquare, BarChart2, BookOpen, MessageSquare, PhoneCall, Printer, LogOut, Menu, PanelLeftOpen, PanelLeftClose
 } from 'lucide-react';
 import AIInsights from './AIInsights';
 
@@ -549,15 +549,25 @@ const Dashboard = ({ patientId: propPatientId }) => {
     const fetchDashboardData = async () => {
         try {
             setLoading(true);
-            const res = await axios.get(`${baseURL}/api/patient/dashboard/${activePatientId}`);
+            const res = await axios.get(`${baseURL}/api/patient/dashboard/${activePatientId}`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}` }
+            });
+            console.log(res.data.profile)
             if (res.data.success) {
                 setData({
                     labs: res.data.labs,
                     symptoms: res.data.symptoms,
                     specialistReviews: res.data.specialistReviews
                 });
+                // Inside fetchDashboardData, update the profile logic:
                 if (res.data.profile) {
-                    setDemographics(res.data.profile);
+                    setDemographics({
+                        // Database is 'full_name', UI expects 'name'
+                        name: res.data.profile.full_name || 'Patient',
+                        gender: res.data.profile.gender || '—',
+                        // Database is 'primary_goal', UI expects 'goal'
+                        goal: res.data.intake.goals || 'general'
+                    });
                 }
                 setCheckinForm(prev => ({
                     ...prev,
@@ -579,7 +589,8 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
 
     const handleLogout = () => {
-        localStorage.removeItem('token'); // or whatever your auth key is
+        localStorage.removeItem('token');
+        localStorage.clear() // or whatever your auth key is
         navigate('/login');
     };
     const handleAppointmentSubmit = async () => {
@@ -599,24 +610,30 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
     const handleCheckinSubmit = async () => {
         try {
-            await axios.post(`${baseURL}/api/patient/import-symptoms`, {
-                patientId: activePatientId,
-                symptoms: [{
-                    date: new Date().toISOString().split('T')[0],
-                    energy: checkinForm.energy,
-                    sleep: checkinForm.sleep,
-                    mood: checkinForm.mood,
-                    stress: checkinForm.stress
-                }]
+            const payload = {
+                patient_id: activePatientId, // Ensure your backend/database uses snake_case
+                checkin_date: new Date().toISOString().split('T')[0],
+                energy_score: parseInt(checkinForm.energy),
+                mood_score: parseInt(checkinForm.mood),
+                sleep_score: parseInt(checkinForm.sleep),
+                stress_score: parseInt(checkinForm.stress),
+                symptoms_reported: checkinForm.symptoms, // Array
+                free_text: checkinForm.notes
+            };
+
+            await axios.post(`${baseURL}/api/patient/checkin`, payload, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}` }
             });
+
             alert("Daily Metric Log Captured Successfully!");
             await fetchDashboardData();
             setCurrentScreen('dashboard');
         } catch (err) {
-            alert("Failed to save operational biometric logs.");
+            // Detailed error logging
+            console.error("Check-in Error Detail:", err.response?.data || err.message);
+            alert(`Failed to save biometric logs: ${err.response?.data?.error || err.message}`);
         }
     };
-
     const getDynamicBiomarkers = () => {
         if (!data.labs || data.labs.length === 0) return [];
         const keys = new Set();
@@ -748,6 +765,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
             </div>
         );
     }
+    console.log(demographics.name)
 
     return (
         <div style={{ backgroundColor: '#F7F1E8', minHeight: '100vh' }}>
@@ -881,6 +899,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                     <div className="nav-streak">🔥 <strong>{streak}</strong> day streak</div>
 
                     {/* Avatar with click-to-open menu */}
+
                     <div className="nav-avatar"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                         style={{ cursor: 'pointer', position: 'relative' }}>
@@ -942,7 +961,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                     <div className="si" onClick={() => { setIsModalOpen(true); setIsSidebarOpen(false); }}>
                         <span className="si-icon"><PhoneCall size={16} /></span> Book a Call
                     </div>
-                    
+
                     <div className="si-section" style={{ marginTop: 'auto' }}>Account</div>
                     <div className="si" onClick={handleLogout}>
                         <span className="si-icon"><LogOut size={16} /></span> Logout
@@ -957,7 +976,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         <>
                             <div className="ph">
                                 <h1 className="ph-title">Hello, {demographics.name || 'Patient'}</h1>
-                                <p className="ph-sub">Baseline Protocol Registry ID: <strong>{activePatientId}</strong> • Monitor Core Focus: <span style={{ color: '#0F4C5C', fontWeight: 600, textTransform: 'uppercase' }}>{demographics.goal || 'General Health'}</span></p>
+                                <p className="ph-sub"><strong>Patient ID: </strong>{activePatientId} <br/> <strong>Goals: </strong>{demographics.goal || 'General Health'}</p>
                             </div>
 
                             <div className="cb" onClick={() => setCurrentScreen('checkin')}>
@@ -1036,7 +1055,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             </div>
 
                             <PatientReviewView reviews={data.specialistReviews} />
-                            <IntakeSummary intake={intakeData} />
+                            {/*<IntakeSummary intake={intakeData} />*/}
 
                             {/* PANEL LONGITUDINAL MONITORING GRAPH PLOTS TIMELINE */}
                             <section style={{ marginBottom: '24px' }}>
@@ -1050,9 +1069,9 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 </div>
                             </section>
 
-                            <section className="card">
+                            {/*<section className="card">
                                 <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
-                            </section>
+                            </section> */}
 
                             <section className="card">
                                 <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
@@ -1068,6 +1087,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                             navigate(`/clinical-summary/${activePatientId}`, {
                                                 state: {
                                                     profile: demographics,
+
                                                     intake: intakeData,
                                                     labData: getMergedLabData(),
                                                     aiInsights: response.data.success ? response.data.insights : "AI Engine payload execution unfulfilled."
