@@ -6,7 +6,7 @@ import Phase1Review from './components/Phase1Review';
 import Dashboard from './components/Dashboard';
 import AdminPortal from './components/AdminPortal'; 
 import PatientProfile from './components/PatientProfile';
-import UserPortal from './components/UserPortal';
+import UserPortal from './components/userAuth/UserPortal';
 import OnboardingPage from './components/OnboardingPage';
 import ClinicalSummary from './components/ClinicalSummary';
 import IntakeForm from './components/IntakeForm';
@@ -59,8 +59,9 @@ function App() {
           <Route path="/intake" element={<IntakeForm />} />
 
           <Route path="/phase1upload" element={<Phase1Upload />} />
-          <Route path="/onboarding" element={<OnboardingPage />}/>
+          <Route path="/onboarding/:id" element={<OnboardingPage />}/>
           <Route path="/login" element={<UserPortal />} />
+          <Route path="/activate" element={<UserPortal />} />
           <Route path="/register" element={<UserPortal />} />
           
           {/* Clinical Access Routes */}

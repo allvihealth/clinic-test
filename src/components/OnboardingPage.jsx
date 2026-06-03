@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom'; // 🚀 Added useParams to pull the ID directly from the URL
 import axios from "axios";
 
 const OnboardingPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams(); // 🚀 Extracts 'Allvi-9073' from http://localhost:5173/onboarding/Allvi-9073
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 3; 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,9 +147,23 @@ const OnboardingPage = () => {
     
     const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
-        : import.meta.env.VITE_SERVER_URL;
+        : import.meta.env.VITE_SERVER_URL || '';
 
-    const activeRegistrationTokenId = localStorage.getItem('allvi_id');
+    // 🔑 Smart Extraction Strategy: Fall back to URL segment if local storage is unpopulated
+    let activeRegistrationTokenId = localStorage.getItem('allvi_id');
+    if (!activeRegistrationTokenId || activeRegistrationTokenId === 'undefined') {
+        activeRegistrationTokenId = id;
+    }
+
+    const authToken = localStorage.getItem('allvi_auth_token');
+
+    // 🛑 CLIENT SCRIPT SECURITY GUARD: Alert early instead of allowing an ambiguous 401 fail loop
+    if (!authToken || authToken === 'undefined' || authToken === 'null') {
+      setIsSubmitting(false);
+      console.error("❌ Aborted: No valid authentication session detected in LocalStorage.");
+      alert("Session Error: Your authentication token is missing or expired. Please clear your site data and log in again to sync your portal session.");
+      return;
+    }
 
     try {
       const payload = new FormData();
@@ -175,7 +190,10 @@ const OnboardingPage = () => {
       }
 
       const response = await axios.post(`${baseURL}/api/patient/submit-intake`, payload, {
-        headers: { 'Content-Type': 'multipart/form-data' }
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${authToken.trim()}`
+        }
       });
 
       if (response.data.success) {
@@ -201,7 +219,7 @@ const OnboardingPage = () => {
       }
     } catch (error) {
       console.error("Network link issue encountered:", error);
-      alert(`Submission sequence aborted: ${error.message || "Connection to API engine failed."}`);
+      alert(`Submission sequence aborted: ${error.response?.data?.message || error.message || "Connection to API engine failed."}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -277,8 +295,22 @@ const OnboardingPage = () => {
                         <span className={`text-[14px] ${isSelected ? 'font-semibold text-[#0F4C5C]' : 'text-[#1F2937]'}`}>{item.label}</span>
                       </div>
                     );
-                  })}
+                  防})}
                 </div>
+              </div>
+
+               <div>
+                <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2">
+                  Secondary condition <span className="text-[#DC2626]">*</span>
+                </label>
+                <input 
+                  type="text"
+                  name="medicationDetails"
+                  value={formData.medicationDetails}
+                  onChange={handleChange}
+                  placeholder="e.g. Thyroid B+, ..."
+                  className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
+                />
               </div>
 
               <div>
@@ -314,7 +346,7 @@ const OnboardingPage = () => {
               </div>
 
               <div>
-                <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">
+                <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2">
                   {branchConfig[activeBranch].medLabel}
                 </label>
                 <input 

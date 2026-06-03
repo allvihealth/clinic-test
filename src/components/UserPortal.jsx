@@ -177,7 +177,6 @@ const UserPortal = () => {
 
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: '24px', fontWeight: 600, color: styles.charcoal, marginBottom: '8px', lineHeight: 1.3 }}>Welcome to Allvi, <br/>Rashmi</h2>
                 <p style={{ fontSize: '14px', color: 'var(--grey)', marginBottom: '28px', lineHeight: '1.6' }}>
-                    You have been enrolled by <strong style={{ color: 'var(--charcoal)' }}>Greenfield Endocrinology</strong>.
                     Set your password to activate your account and start your care program.
                 </p>
 
@@ -249,7 +248,7 @@ const UserPortal = () => {
                     </p>
                 </form>
             </div>
-            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒 GDPR-compliant HIPAA-compliant · Encrypted · Secure</div>
+            <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey }}>🔒 GDPR-compliant · 🔒 HIPAA-compliant · Encrypted · Secure</div>
         </div>
     );
 };
