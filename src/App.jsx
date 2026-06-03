@@ -4,20 +4,20 @@ import Navbar from './components/Navbar';
 import Phase1Upload from './components/Phase1Upload';
 import Phase1Review from './components/Phase1Review';
 import Dashboard from './components/Dashboard';
-import AdminPortal from './components/AdminPortal'; 
+import AdminPortal from './components/AdminPortal';
 import PatientProfile from './components/PatientProfile';
 import UserPortal from './components/userAuth/UserPortal';
 import OnboardingPage from './components/OnboardingPage';
 import ClinicalSummary from './components/ClinicalSummary';
 import IntakeForm from './components/IntakeForm';
-import ClinicalLoginPage from './components/ClinicalLoginPage'; 
-import ClinicDashboard from './components/ClinicDashboard'; 
+import ClinicalLoginPage from './components/ClinicalLoginPage';
+import ClinicDashboard from './components/ClinicDashboard';
 import { LogIn } from 'lucide-react';
 
 // Simple wrapper for the Patient Dashboard to extract the ID from URL
 const DashboardWrapper = () => {
-    const { id } = useParams();
-    return <Dashboard patientId={id} />;
+  const { id } = useParams();
+  return <Dashboard patientId={id} />;
 };
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
     const savedId = localStorage.getItem('allvi_auth_token');
     const isClinicSession = localStorage.getItem('allvi_clinic_token');
     const publicPaths = ['/login', '/onboarding', '/clinical-login'];
-    
+
     // If authenticated as a clinic admin, keep them pinned to the clinical dashboard
     if (isClinicSession && window.location.pathname === '/clinical-login') {
       navigate('/clinic-dashboard');
@@ -38,7 +38,7 @@ function App() {
 
     // Standard patient portal routing redirect
     if (savedId && publicPaths.includes(window.location.pathname)) {
-        navigate(`/profile/${savedId}`);
+      navigate(`/profile/${savedId}`);
     }
   }, [navigate]);
 
@@ -48,53 +48,56 @@ function App() {
 
   return (
     <div className="app-container" style={{ minHeight: '100vh', backgroundColor: "#F7F1E8" }}>
-      
-     {/* Conditionally render Navbar based on current pathname */}
-      {/*shouldShowNavbar && <Navbar />*/} 
 
-      <main style={{  }}>
+      {/* Conditionally render Navbar based on current pathname */}
+      {/*shouldShowNavbar && <Navbar />*/}
+
+      <main style={{}}>
         <Routes>
           {/* Public Access to All Routes */}
           <Route path="/" element={<UserPortal />} />
           <Route path="/intake" element={<IntakeForm />} />
 
           <Route path="/phase1upload" element={<Phase1Upload />} />
-          <Route path="/onboarding/:id" element={<OnboardingPage />}/>
+          <Route path="/onboarding/:id" element={<OnboardingPage />} />
           <Route path="/login" element={<UserPortal />} />
           <Route path="/activate" element={<UserPortal />} />
           <Route path="/register" element={<UserPortal />} />
-          
+
           {/* Clinical Access Routes */}
           <Route path="/clinical-login" element={<ClinicalLoginPage />} />
           {/* Clinical Executive Dashboard */}
           <Route path="/clinic-dashboard" element={<ClinicDashboard />} />
-          
+
           {/* Standard Patient Application Flow Routes */}
           <Route path="/review" element={<Phase1Review />} />
           <Route path="/dashboard" element={<DashboardWrapper />} />
           <Route path="/dashboard/:id" element={<DashboardWrapper />} />
-          
-          <Route path="/profile/:patientId" element={<PatientProfile />} />
-          <Route path="/clinical-summary/:patientId" element={<ClinicalSummary/>} />
-          
+
+
+          <Route path="/clinical-summary/:patientId" element={<ClinicalSummary />} />
+
           {/* General Admin Portal Route */}
           <Route path="/admin" element={<AdminPortal />} />
-          
+
           {/* 404 Route */}
           <Route path="*" element={
             <div style={{ padding: '40px', textAlign: 'center' }}>
               <h2 style={{ color: '#0F4C5C' }}>404 - Page Not Found</h2>
-              <button 
-                onClick={() => navigate('/login')} 
-                style={{ 
-                  marginTop: '20px', 
-                  cursor: 'pointer', 
-                  color: '#0F4C5C', 
-                  fontWeight: 'bold', 
-                  background: 'none', 
-                  border: '1px solid #0F4C5C', 
-                  padding: '10px 20px', 
-                  borderRadius: '10px' 
+              <button
+                onClick={() => {
+                  localStorage.clear(); // 🚀 This wipes everything (tokens, saved IDs, etc.)
+                  navigate('/login');   // Then safely redirects to the login page
+                }}
+                style={{
+                  marginTop: '20px',
+                  cursor: 'pointer',
+                  color: '#0F4C5C',
+                  fontWeight: 'bold',
+                  background: 'none',
+                  border: '1px solid #0F4C5C',
+                  padding: '10px 20px',
+                  borderRadius: '10px'
                 }}
               >
                 Back to Login
@@ -103,7 +106,7 @@ function App() {
           } />
         </Routes>
       </main>
-      
+
     </div>
   );
 }

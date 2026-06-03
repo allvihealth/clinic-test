@@ -87,7 +87,6 @@ const handleConfirmSave = async () => {
         {/* Header Section */}
         <div className="bg-[#0F4C5C] p-8 text-[#F7F1E8]">
           <button
-            onClick={() => navigate('/phase1upload')}
             className="flex items-center gap-2 text-[#F7F1E8]/70 hover:text-white transition-colors mb-4 text-sm font-medium"
           >
             <ArrowLeft size={16} /> Change File
