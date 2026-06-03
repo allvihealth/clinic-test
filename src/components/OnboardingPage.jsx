@@ -207,6 +207,7 @@ const OnboardingPage = () => {
             state: {
               parsedData: response.data.parsedData,
               allviId: response.data.allvi_id,
+              uploadTrackId: response.data.uploadTrackId,
               age: calcAge,
               gender: formData.gender
             }

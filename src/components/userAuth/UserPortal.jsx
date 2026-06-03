@@ -60,11 +60,12 @@ const UserPortal = () => {
             });
 
             if (response.data.success) {
-                const profile = response.data.patient;
-                localStorage.setItem('allvi_id', profile.allvi_id);
+                const { session, patient } = response.data;
+                const profile = patient;
+                localStorage.setItem('allvi_id', profile.id);
                 localStorage.setItem('user_profile', JSON.stringify(profile));
-              
-                navigate(`/dashboard/${profile.id}`);
+                localStorage.setItem('allvi_auth_token', session.access_token);
+                navigate(`/onboarding/${profile.id}`);
             }
         } catch (err) {
             setError(err.response?.data?.message || "Invalid credentials. Try running invitation activation first.");

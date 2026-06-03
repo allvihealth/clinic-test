@@ -7,7 +7,7 @@ const Phase1Review = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { parsedData, allviId, age, gender } = location.state || {};
+  const { parsedData, allviId, age, gender,uploadTrackId } = location.state || {};
 
   const [formData, setFormData] = useState({});
   const [testDate, setTestDate] = useState('');
@@ -36,7 +36,7 @@ const Phase1Review = () => {
     }));
   };
 
-  const handleConfirmSave = async () => {
+const handleConfirmSave = async () => {
     if (!allviId) return alert("Patient ID missing.");
     
     setSaving(true);
@@ -44,11 +44,29 @@ const Phase1Review = () => {
        const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
         ? 'http://127.0.0.1:5000'
         : import.meta.env.VITE_SERVER_URL;
-      // Important: Sending the full nested objects (including units/ranges) to the backend
+
+      // 1. 🚀 Grab the authentication token from LocalStorage
+     // 1. Grab the authentication token from LocalStorage
+      const authToken = localStorage.getItem('allvi_auth_token');
+      
+      console.log("🔍 FRONTEND CHECK - Token being sent:", authToken); // <-- ADD THIS
+
+      if (!authToken) {
+          alert("Authentication token missing. Please log in again.");
+          setSaving(false);
+          return;
+      }
+
+      // 2. 🚀 Pass the headers object as the third argument in axios.post
       const response = await axios.post(`${baseURL}/api/patient/confirm-results`, {
         patientId: allviId,
         test_date: testDate,
+        lab_upload_id: uploadTrackId,
         biomarkers: formData 
+      }, {
+        headers: {
+            'Authorization': `Bearer ${authToken}` // <-- This fixes the 401 error!
+        }
       });
 
       if (response.data.success) {
