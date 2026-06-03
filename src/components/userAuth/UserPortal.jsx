@@ -65,7 +65,7 @@ const UserPortal = () => {
                 localStorage.setItem('allvi_id', profile.id);
                 localStorage.setItem('user_profile', JSON.stringify(profile));
                 localStorage.setItem('allvi_auth_token', session.access_token);
-                navigate(`/onboarding/${profile.id}`);
+                navigate(`/dashboard/${profile.id}`);
             }
         } catch (err) {
             setError(err.response?.data?.message || "Invalid credentials. Try running invitation activation first.");
