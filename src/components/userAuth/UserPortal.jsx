@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import UserLogin from './UserLogin';
+import ForgotPassword from './ForgotPassword';
 import UserActivate from './UserActivate';
 
 const UserPortal = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    
+
     // 🔗 PATH ROUTING SYNC: Sets default view state depending on browser URL paths
     const [view, setView] = useState(location.pathname === '/login' ? 'login' : 'signup');
-    
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
@@ -95,8 +96,8 @@ const UserPortal = () => {
             });
 
             if (response.data.success) {
-                const {session, patient } = response.data;
-                const generatedId = patient.id ;
+                const { session, patient } = response.data;
+                const generatedId = patient.id;
                 localStorage.setItem('allvi_id', generatedId);
                 localStorage.setItem('user_profile', JSON.stringify(response.data.patient));
                 localStorage.setItem('prefill_email', activationEmail.toLowerCase().trim());
@@ -126,8 +127,8 @@ const UserPortal = () => {
     return (
         <>
             {view === 'login' ? (
-                <UserLogin 
-                     styles={styles}
+                <UserLogin
+                    styles={styles}
                     loginIdentifier={loginIdentifier}
                     setLoginIdentifier={setLoginIdentifier}
                     loginPassword={loginPassword}
@@ -136,9 +137,11 @@ const UserPortal = () => {
                     error={error}
                     onSubmit={handleAccess}
                     onSwitchView={handleSwitchToActivate}
+                    // Pass the new prop here to toggle to forgot password view
+                    onForgotPassword={() => setView('forgot')}
                 />
-            ) : (
-                <UserActivate 
+            ) : view === 'signup' ? (
+                <UserActivate
                     styles={styles}
                     activationEmail={activationEmail}
                     setActivationEmail={setActivationEmail}
@@ -150,6 +153,12 @@ const UserPortal = () => {
                     error={error}
                     onSubmit={handleActivationSubmit}
                     onSwitchView={handleSwitchToLogin}
+                />
+            ) : (
+                // This is the new 'forgot' view
+                <ForgotPassword
+                    onBack={() => setView('login')}
+                    getBaseURL={getBaseURL}
                 />
             )}
         </>

@@ -9,36 +9,36 @@ const OnboardingPage = () => {
   const totalSteps = 3; 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Core Data Structure - In perfect synchronization with backend parameter columns
+  // Core Data Structure - Cleared out pre-selected options for an accurate "Clean Slate" configuration
   const [formData, setFormData] = useState({
-    conditions: ["Hashimoto's thyroiditis"], 
-    conditionOther: '', diagnosedWhen: '2026-01', diagnosedBy: ["Primary care physician (PCP)"],
-    symptomsEnergy: ["Fatigue / low energy", "Always feeling cold", "Joint pain"], 
-    symptomsDigestion: ["Constipation"], 
-    symptomsMental: ["Depression"], 
+    conditions: [], 
+    conditionOther: '', diagnosedWhen: '', diagnosedBy: [],
+    symptomsEnergy: [], 
+    symptomsDigestion: [], 
+    symptomsMental: [], 
     symptomsSleep: [], 
     symptomsOther: [], 
     symptomsOtherText: '', 
-    worstSymptoms: 'Fatigue, constipation and feeling cold all the time',
-    takingMedication: 'Yes', 
-    medicationDetails: 'Levothyroxine 25mcg — taken 6am daily', 
-    medicationDuration: '1-3 months', 
-    supplements: 'Multivitamin, B12 with K2, Magnesium, Omega-3 fish oil',
-    lastLabs: '1-3 months ago', labFile: null, additionalLabs: [],
-    providerSatisfaction: '3 - Neutral', upcomingAppt: 'No', apptDate: '',
-    dietaryChanges: ["Gluten-free", "Dairy-free", "Soy-free", "Sugar-free / reduced sugar"], 
-    dietOther: '', stressLevel: '3 - Moderate stress', sleepQuality: '3 - Okay', 
-    exercise: 'Yes, regularly (3+ times per week)', 
-    exerciseType: 'Yoga 3x/week, Pickleball 2x/week, Swimming 1x/week',
-    topGoals: 'Improve my GI symptoms and maintain digestive health. Stop or slow the autoimmune attack on my thyroid. Improve temperature regulation and feel warmer.', 
-    topHelp: 'Slowing or stopping the autoimmune attack on my thyroid', 
+    worstSymptoms: '',
+    takingMedication: '', 
+    medicationDetails: '', 
+    medicationDuration: '', 
+    supplements: '',
+    lastLabs: '', labFile: null, additionalLabs: [],
+    providerSatisfaction: '', upcomingAppt: '', apptDate: '',
+    dietaryChanges: [], 
+    dietOther: '', stressLevel: '', sleepQuality: '', 
+    exercise: '', 
+    exerciseType: '',
+    topGoals: '', 
+    topHelp: '', 
     topHelpOther: '', anythingElse: '',
-    commPlatform: ["SMS"], commPlatformOther: '', commTime: 'Midday (11am–1pm)',
-    fullName: 'Rashmi', phone: '', dob: '', gender: 'Female', genderOther: '', location: ''
+    commPlatform: [], commPlatformOther: '', commTime: '',
+    fullName: '', phone: '', dob: '', gender: '', genderOther: '', location: ''
   });
 
-  // Local condition branch tracker matching script flow architecture
-  const [activeBranch, setActiveBranch] = useState('thyroid');
+  // Local condition branch tracker initialized to null so no main category is forced active, but layouts render directly
+  const [activeBranch, setActiveBranch] = useState(null);
 
   // Dynamic label configurations matrix mapping 
   const branchConfig = {
@@ -149,7 +149,6 @@ const OnboardingPage = () => {
         ? 'http://127.0.0.1:5000'
         : import.meta.env.VITE_SERVER_URL || '';
 
-    // 🔑 Smart Extraction Strategy: Fall back to URL segment if local storage is unpopulated
     let activeRegistrationTokenId = localStorage.getItem('allvi_id');
     if (!activeRegistrationTokenId || activeRegistrationTokenId === 'undefined') {
         activeRegistrationTokenId = id;
@@ -157,7 +156,6 @@ const OnboardingPage = () => {
 
     const authToken = localStorage.getItem('allvi_auth_token');
 
-    // 🛑 CLIENT SCRIPT SECURITY GUARD: Alert early instead of allowing an ambiguous 401 fail loop
     if (!authToken || authToken === 'undefined' || authToken === 'null') {
       setIsSubmitting(false);
       console.error("❌ Aborted: No valid authentication session detected in LocalStorage.");
@@ -226,6 +224,9 @@ const OnboardingPage = () => {
     }
   };
 
+  // Safe fallback utility selector mapping to prevent errors when activeBranch is null initially
+  const targetBranch = activeBranch || 'thyroid';
+
   return (
     <div className="min-h-screen bg-[#F7F1E8] font-sans antialiased text-[#1F2937]">
       {/* Header Banner */}
@@ -282,9 +283,12 @@ const OnboardingPage = () => {
                       <div 
                         key={item.key}
                         onClick={() => {
-                          setActiveBranch(item.key);
-                          handleDirectValue("conditions", [branchConfig[item.key].pills[0]]);
-                          handleDirectValue("medicationDetails", branchConfig[item.key].medValue || '');
+                          // 🚀 Dynamic toggle logic: If clicked item is already active, turn it off (set to null)
+                          if (activeBranch === item.key) {
+                            setActiveBranch(null);
+                          } else {
+                            setActiveBranch(item.key);
+                          }
                         }}
                         className={`flex items-center gap-3 px-4 py-3 border-2 rounded-[10px] cursor-pointer transition-all ${
                           isSelected ? 'border-[#0F4C5C] bg-[#E8F4F7]' : 'border-[#0F4C5C]/15 bg-white'
@@ -296,7 +300,7 @@ const OnboardingPage = () => {
                         <span className={`text-[14px] ${isSelected ? 'font-semibold text-[#0F4C5C]' : 'text-[#1F2937]'}`}>{item.label}</span>
                       </div>
                     );
-                  防})}
+                  })}
                 </div>
               </div>
 
@@ -306,18 +310,21 @@ const OnboardingPage = () => {
                 </label>
                 <input 
                   type="text"
-                  name="medicationDetails"
-                  value={formData.medicationDetails}
+                  name="conditionOther"
+                  value={formData.conditionOther}
                   onChange={handleChange}
                   placeholder="e.g. Thyroid B+, ..."
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
                 />
               </div>
 
+              {/* 🚀 Kept layout structured safely outside hard conditional blocks to mirror image_5cdffb.png perfectly */}
               <div>
-                <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">{branchConfig[activeBranch].label} <span className="text-[#DC2626]">*</span></label>
+                <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">
+                  {branchConfig[targetBranch].label} <span className="text-[#DC2626]">*</span>
+                </label>
                 <div className="flex flex-wrap gap-2">
-                  {branchConfig[activeBranch].pills.map((pill) => {
+                  {branchConfig[targetBranch].pills.map((pill) => {
                     const isPillSelected = formData.conditions.includes(pill);
                     return (
                       <div 
@@ -348,21 +355,21 @@ const OnboardingPage = () => {
 
               <div>
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2">
-                  {branchConfig[activeBranch].medLabel}
+                  {branchConfig[targetBranch].medLabel}
                 </label>
                 <input 
                   type="text"
                   name="medicationDetails"
                   value={formData.medicationDetails}
                   onChange={handleChange}
-                  placeholder={branchConfig[activeBranch].medPlaceholder}
+                  placeholder={branchConfig[targetBranch].medPlaceholder}
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
                 />
               </div>
 
               <div className="p-4 bg-[#E8F4F7] rounded-[10px] border-l-3 border-[#0F4C5C]">
-                <div className="text-[12px] font-bold text-[#0F4C5C] mb-0.5">{branchConfig[activeBranch].title}</div>
-                <div className="text-[12px] text-[#1A6B7C] leading-relaxed">{branchConfig[activeBranch].body}</div>
+                <div className="text-[12px] font-bold text-[#0F4C5C] mb-0.5">{branchConfig[targetBranch].title}</div>
+                <div className="text-[12px] text-[#1A6B7C] leading-relaxed">{branchConfig[targetBranch].body}</div>
               </div>
             </div>
           )}
@@ -378,7 +385,7 @@ const OnboardingPage = () => {
               <div>
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">Symptoms you are currently experiencing <span className="text-[#DC2626]">*</span></label>
                 <div className="flex flex-wrap gap-2">
-                  {["Fatigue", "Brain fog", "Feeling cold", "Constipation", "Hair loss or thinning", "Joint or muscle pain", "Anxiety", "Depression or low mood", "Mood swings", "Heart palpitations", "Weight changes", "None of the above"].map((smp) => {
+                  {["Fatigue", "Brain fog", "Feeling cold", "Constipation", "Hair loss or thinning", "Joint or muscle pain", "Anxiety", "Depression or low mood", "Mood swings", "Heart palpitations", "Weight changes","Sweating (unusual)", "Difficulty sleeping","None of the above"].map((smp) => {
                     const active = isSymptomActive(smp);
                     return (
                       <div 
@@ -402,6 +409,7 @@ const OnboardingPage = () => {
                   value={formData.worstSymptoms}
                   onChange={handleChange}
                   rows="2"
+                  placeholder="Fatigue, constipation and feeling cold all the time"
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white leading-relaxed"
                 />
               </div>
@@ -410,7 +418,7 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">How long have your symptoms been significantly impacting your daily life? <span className="text-[#DC2626]">*</span></label>
                 <div className="flex flex-wrap gap-2">
                   {["Less than 3 months", "3–6 months", "6–12 months", "1–2 years", "More than 2 years"].map((dur) => {
-                    const isSel = formData.medicationDuration === dur || (dur === "1–2 years" && formData.medicationDuration === "1-3 months"); 
+                    const isSel = formData.medicationDuration === dur; 
                     return (
                       <div 
                         key={dur} 
@@ -433,6 +441,7 @@ const OnboardingPage = () => {
                   name="supplements"
                   value={formData.supplements}
                   onChange={handleChange}
+                  placeholder="Multivitamin, B12 with K2, Magnesium, Omega-3 fish oil"
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
                 />
               </div>
@@ -441,7 +450,7 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2">Any mental health history we should be aware of?<span className="text-[11px] font-normal lowercase normal-case text-[#6B7280]">(used for risk monitoring only — not shared with your employer or insurer)</span></label>
                 <div className="flex flex-wrap gap-2">
                   {["Anxiety", "Depression", "PTSD", "Eating disorder (past or present)", "None", "Prefer not to say"].map((mhh) => {
-                    const isMhSelected = formData.symptomsMental.includes(mhh) || (mhh === "Depression" && formData.symptomsMental.includes("Depression or low mood"));
+                    const isMhSelected = formData.symptomsMental.includes(mhh);
                     return (
                       <div 
                         key={mhh}
@@ -487,7 +496,7 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">Current diet <span className="text-[#DC2626]">*</span></label>
                 <div className="flex flex-wrap gap-2">
                   {["Standard / no restrictions", "Gluten-free", "Dairy-free", "Soy-free", "Reduced sugar", "Plant-based / vegan", "Mediterranean"].map((dt) => {
-                    const isDietSelected = formData.dietaryChanges.includes(dt) || (dt === "Reduced sugar" && formData.dietaryChanges.includes("Sugar-free / reduced sugar"));
+                    const isDietSelected = formData.dietaryChanges.includes(dt);
                     return (
                       <div 
                         key={dt}
@@ -507,7 +516,7 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">Do you currently exercise?</label>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {["Yes, regularly (3+ times/week)", "Yes, occasionally (1–2 times/week)", "Rarely", "No"].map((ex) => {
-                    const isExSelected = formData.exercise.includes(ex.split(' ')[0]);
+                    const isExSelected = formData.exercise === ex;
                     return (
                       <div 
                         key={ex}
@@ -526,7 +535,7 @@ const OnboardingPage = () => {
                   name="exerciseType"
                   value={formData.exerciseType}
                   onChange={handleChange}
-                  placeholder="What types of exercise? (e.g. yoga, walking, swimming)"
+                  placeholder="Yoga 3x/week, Pickleball 2x/week, Swimming 1x/week"
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
                 />
               </div>
@@ -535,11 +544,11 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">Current stress level <span className="text-[#DC2626]">*</span></label>
                 <div className="flex flex-wrap gap-2">
                   {["1 — Very low", "2 — Low", "3 — Moderate", "4 — High", "5 — Very high"].map((str) => {
-                    const isStrSelected = formData.stressLevel.includes(str.split(' ')[2] || "Moderate");
+                    const isStrSelected = formData.stressLevel === str;
                     return (
                       <div 
                         key={str}
-                        onClick={() => handleDirectValue("stressLevel", `${str.split(' ')[0]} - ${str.split(' ')[2] || "Moderate"} stress`)}
+                        onClick={() => handleDirectValue("stressLevel", str)}
                         className={`px-4 py-2 text-[13px] rounded-lg cursor-pointer transition-all border ${
                           isStrSelected ? 'bg-[#0F4C5C] border-[#0F4C5C] text-[#F7F1E8]' : 'bg-white border-[#0F4C5C]/15 text-[#1F2937]'
                         }`}
@@ -562,7 +571,7 @@ const OnboardingPage = () => {
                     "Slowing or stopping the autoimmune attack on my thyroid",
                     "Having someone who understands and tracks my symptoms"
                   ].map((hlp) => {
-                    const isHlpSelected = formData.topHelp.includes(hlp.substring(0, 15)) || (hlp.includes("autoimmune") && formData.topHelp.includes("Slowing or stopping"));
+                    const isHlpSelected = formData.topHelp === hlp;
                     return (
                       <div 
                         key={hlp}
@@ -585,6 +594,7 @@ const OnboardingPage = () => {
                   value={formData.topGoals}
                   onChange={handleChange}
                   rows="3"
+                  placeholder="Improve my GI symptoms and maintain digestive health. Stop or slow the autoimmune attack on my thyroid. Improve temperature regulation and feel warmer."
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white leading-relaxed"
                 />
               </div>
@@ -593,7 +603,7 @@ const OnboardingPage = () => {
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2.5">Preferred daily check-in time <span className="text-[#DC2626]">*</span></label>
                 <div className="flex flex-wrap gap-2">
                   {["Morning (7–9am)", "Midday (11am–1pm)", "Evening (5–7pm)", "No preference"].map((tm) => {
-                    const isTmSelected = formData.commTime.startsWith(tm.substring(0, 5));
+                    const isTmSelected = formData.commTime === tm;
                     return (
                       <div 
                         key={tm}
@@ -609,7 +619,6 @@ const OnboardingPage = () => {
                 </div>
               </div>
 
-              {/* INTEGRATED FIELD: Optional structural open-text context block */}
               <div>
                 <label className="block text-[12px] font-bold tracking-[0.06em] uppercase text-[#6B7280] mb-2">
                   Is there anything else you'd like us to know? <span className="text-[11px] font-normal lowercase normal-case text-[#6B7280]">(optional)</span>
@@ -629,7 +638,7 @@ const OnboardingPage = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-[#6B7280] mb-1">Full Name</label>
-                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} className="w-full p-2.5 border border-[#0F4C5C]/20 rounded-lg text-[13px] outline-none" required />
+                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Rashmi" className="w-full p-2.5 border border-[#0F4C5C]/20 rounded-lg text-[13px] outline-none" required />
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-[#6B7280] mb-1">Phone Number</label>
@@ -679,7 +688,7 @@ const OnboardingPage = () => {
           </div>
         </div>
 
-        <p className="text-center text-[11px] text-[#6B7280] mt-5">🔒 HIPAA-compliant · Your data is encrypted and never sold</p>
+        <p className="text-center text-[11px] text-[#6B7280] mt-5">🔒 GDPR-compliant · 🔒 HIPAA-compliant · Your data is encrypted and never sold</p>
       </div>
     </div>
   );

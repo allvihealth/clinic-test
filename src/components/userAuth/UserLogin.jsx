@@ -1,16 +1,17 @@
 import React from 'react';
-import { User, Lock, AlertCircle, Loader2, ArrowRight } from 'lucide-react';
+import { User, Lock, AlertCircle, Loader2, ArrowRight, Pointer } from 'lucide-react';
 
-const UserLogin = ({ 
-  loginIdentifier, 
-  setLoginIdentifier, 
-  loginPassword, 
-  setLoginPassword, 
-  loading, 
-  error, 
-  onSubmit, 
+const UserLogin = ({
+  loginIdentifier,
+  setLoginIdentifier,
+  loginPassword,
+  setLoginPassword,
+  loading,
+  error,
+  onSubmit,
   onSwitchView,
-   styles
+  onForgotPassword,
+  styles
 }) => {
   return (
     <div className="min-h-screen bg-[#F7F1E8] flex flex-col items-center justify-center p-6 font-sans">
@@ -55,38 +56,40 @@ const UserLogin = ({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0F4C5C] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0d3b47] transition-all shadow-lg disabled:opacity-70"
+              className="w-full bg-[#0F4C5C] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[#0d3b47] transition-all shadow-lg disabled:opacity-70 cursor-pointer"
             >
               {loading ? <Loader2 className="animate-spin" size={18} /> : <>Login <ArrowRight size={16} /></>}
             </button>
-             <div style={{ textAlign: 'right'}}>
-              <span style={{
+            <div style={{ textAlign: 'right' }}>
+              <span onClick={onForgotPassword} 
+              style={{
                 fontSize: '13px',
                 color: '#0F4C5C', // --teal
                 cursor: 'pointer',
-                fontWeight: '500'
+                fontWeight: '500',
+                cursor:"Pointer"
               }}>
-                Forgot password?
-              </span>
-            </div>
-
-            <div className=" text-center border-t border-slate-100 mt-6">
-              <p className="text-xs text-slate-400 mb-1">Pending clinic system enrollment activation?</p>
-              <button
-                type="button"
-                onClick={onSwitchView}
-                className="text-[#0F4C5C] hover:text-[#0d3b47] text-sm font-semibold cursor-pointer underline transition-colors"
-              >
-                Activate Invitation / Signup →
-              </button>
-            </div>
-          </form>
-         
+              Forgot password?
+            </span>
         </div>
-       
-      </div>
-      <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey, textAlign:"center" }}>🔒 GDPR-compliant · 🔒 HIPAA-compliant · Encrypted · Secure</div>
+
+        <div className=" text-center border-t border-slate-100 mt-6">
+          <p className="text-xs text-slate-400 mb-1">Pending clinic system enrollment activation?</p>
+          <button
+            type="button"
+            onClick={onSwitchView}
+            className="text-[#0F4C5C] hover:text-[#0d3b47] text-sm font-semibold cursor-pointer underline transition-colors"
+          >
+            Activate Invitation / Signup →
+          </button>
+        </div>
+      </form>
+
     </div>
+       
+      </div >
+  <div style={{ marginTop: '24px', fontSize: '12px', color: styles.grey, textAlign: "center" }}>🔒 GDPR-compliant · 🔒 HIPAA-compliant · Encrypted · Secure</div>
+    </div >
   );
 };
 

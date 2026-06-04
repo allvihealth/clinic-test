@@ -59,6 +59,7 @@ function App() {
           <Route path="/intake" element={<IntakeForm />} />
 
           <Route path="/phase1upload" element={<Phase1Upload />} />
+          
           <Route path="/onboarding/:id" element={<OnboardingPage />} />
           <Route path="/login" element={<UserPortal />} />
           <Route path="/activate" element={<UserPortal />} />

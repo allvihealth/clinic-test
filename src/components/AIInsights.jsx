@@ -53,7 +53,7 @@ const AIInsights = ({ patientId, intake }) => {
 
                 const res = await axios.get(`${baseURL}/api/patient/insights/${patientId}`, {
                     headers: {
-                        'Authorization': `Bearer ${token}` // 🔑 THIS IS THE MISSING PIECE
+                        'Authorization': `Bearer ${token}`
                     }
                 });
 

@@ -498,14 +498,14 @@ const Dashboard = ({ patientId: propPatientId }) => {
     // State mechanics for internal subjective monitoring checks
     const [checkinForm, setCheckinForm] = useState({
         energy: 8, mood: 9, sleep: 9, stress: 1,
-        symptoms: [], // Array
-        bm: '',       // String
-        bristol: '',  // String
-        diet: '',     // String
-        supplements: [], // Array
+        symptoms: [],
+        bm: '',
+        bristol: '',
+        diet: '',
+        supplements: [],
         notes: ''
     });
-    // Add these state variables
+
     const [messages, setMessages] = useState([
         { sender: 'patient', text: 'I think the iron is constipating me. Should I stop taking it?', time: 'Rashmi · Sat 25 Apr, 2:14pm' },
         { sender: 'team', text: 'Don\'t stop — this is expected in the first 1–2 weeks on 50mg. Iron draws water into the colon...', time: 'Allvi Care Team · Sat 25 Apr, 4:02pm' }
@@ -514,17 +514,13 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
     const getChartData = () => {
         if (!data.symptoms || data.symptoms.length === 0) return [];
-
-        // Map your database symptoms to Recharts-friendly objects
         return data.symptoms.map((s, index) => ({
-            name: `W${index + 1}`, // Generates 'W1', 'W2', etc.
+            name: `W${index + 1}`,
             energy: s.energy ? parseFloat(s.energy) : null,
             mood: s.mood ? parseFloat(s.mood) : null,
             sleep: s.sleep ? parseFloat(s.sleep) : null
         }));
     };
-
-    // Add this handler
 
     const handleSendMessage = () => {
         if (!newMessage.trim()) return;
@@ -552,20 +548,16 @@ const Dashboard = ({ patientId: propPatientId }) => {
             const res = await axios.get(`${baseURL}/api/patient/dashboard/${activePatientId}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}` }
             });
-            console.log(res.data.profile)
             if (res.data.success) {
                 setData({
                     labs: res.data.labs,
                     symptoms: res.data.symptoms,
                     specialistReviews: res.data.specialistReviews
                 });
-                // Inside fetchDashboardData, update the profile logic:
                 if (res.data.profile) {
                     setDemographics({
-                        // Database is 'full_name', UI expects 'name'
                         name: res.data.profile.full_name || 'Patient',
                         gender: res.data.profile.gender || '—',
-                        // Database is 'primary_goal', UI expects 'goal'
                         goal: res.data.intake.goals || 'general'
                     });
                 }
@@ -587,12 +579,11 @@ const Dashboard = ({ patientId: propPatientId }) => {
         }
     };
 
-
     const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.clear() // or whatever your auth key is
+        localStorage.clear();
         navigate('/login');
     };
+
     const handleAppointmentSubmit = async () => {
         if (!notes.trim()) return;
         setSending(true);
@@ -611,13 +602,13 @@ const Dashboard = ({ patientId: propPatientId }) => {
     const handleCheckinSubmit = async () => {
         try {
             const payload = {
-                patient_id: activePatientId, // Ensure your backend/database uses snake_case
+                patient_id: activePatientId,
                 checkin_date: new Date().toISOString().split('T')[0],
                 energy_score: parseInt(checkinForm.energy),
                 mood_score: parseInt(checkinForm.mood),
                 sleep_score: parseInt(checkinForm.sleep),
                 stress_score: parseInt(checkinForm.stress),
-                symptoms_reported: checkinForm.symptoms, // Array
+                symptoms_reported: checkinForm.symptoms,
                 free_text: checkinForm.notes
             };
 
@@ -629,11 +620,11 @@ const Dashboard = ({ patientId: propPatientId }) => {
             await fetchDashboardData();
             setCurrentScreen('dashboard');
         } catch (err) {
-            // Detailed error logging
             console.error("Check-in Error Detail:", err.response?.data || err.message);
             alert(`Failed to save biometric logs: ${err.response?.data?.error || err.message}`);
         }
     };
+
     const getDynamicBiomarkers = () => {
         if (!data.labs || data.labs.length === 0) return [];
         const keys = new Set();
@@ -664,36 +655,41 @@ const Dashboard = ({ patientId: propPatientId }) => {
         return merged;
     };
 
+    // 1. Add this ref inside your Dashboard component
+    const fileInputRef = useRef(null);
+
+    // 2. Add this handler function inside your Dashboard component
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
         if (!file) return;
 
-        Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
-            complete: async (results) => {
-                try {
-                    const response = await axios.post(`${baseURL}/api/patient/import-symptoms`, {
-                        patientId: activePatientId,
-                        symptoms: results.data
-                    });
-                    if (response.data.success) {
-                        alert("Biometric CSV records processed successfully!");
-                        await fetchDashboardData();
-                    }
-                } catch (error) {
-                    alert("Failure executing symptom import parse script.");
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            // Change the URL to match your backend route (e.g., /api/patient/upload-lab)
+            const response = await axios.post(`${baseURL}/api/patient/labs/upload`, formData, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}`,
+                    'Content-Type': 'multipart/form-data'
                 }
+            });
+
+            if (response.data.success) {
+                alert("Lab result parsed and saved successfully!");
+                // Refresh dashboard data to show the new rows in the Lab Record table
+                await fetchDashboardData();
             }
-        });
+        } catch (err) {
+            console.error("Upload failed:", err);
+            alert("Failed to process lab result.");
+        }
     };
 
     const toggleItem = (field, item) => {
         setCheckinForm(prev => {
             const list = prev[field] || [];
-            const newList = list.includes(item)
-                ? list.filter(i => i !== item)
-                : [...list, item];
+            const newList = list.includes(item) ? list.filter(i => i !== item) : [...list, item];
             return { ...prev, [field]: newList };
         });
     };
@@ -701,6 +697,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
     const setOption = (field, value) => {
         setCheckinForm(prev => ({ ...prev, [field]: value }));
     };
+
     const ChartCard = ({ title, dataKey, color, data: sourceData }) => {
         const latestEntry = [...sourceData].reverse().find(entry => entry[dataKey] !== undefined);
         const meta = latestEntry?.meta?.[dataKey] || {};
@@ -733,14 +730,8 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
     const mergedLabData = getMergedLabData();
 
-    // Compute dynamic telemetry fields for the target main metrics blocks (Dashboard & Weekly Report panels)
-    const latestSymptomRow = data.symptoms && data.symptoms.length > 0
-        ? data.symptoms[data.symptoms.length - 1]
-        : null;
-
-    const historicalSymptomRow = data.symptoms && data.symptoms.length > 1
-        ? data.symptoms[data.symptoms.length - 2]
-        : null;
+    const latestSymptomRow = data.symptoms && data.symptoms.length > 0 ? data.symptoms[data.symptoms.length - 1] : null;
+    const historicalSymptomRow = data.symptoms && data.symptoms.length > 1 ? data.symptoms[data.symptoms.length - 2] : null;
 
     const evaluateTrend = (currentVal, pastRow, metricField) => {
         if (currentVal === undefined || currentVal === null) return "No data logged";
@@ -751,21 +742,56 @@ const Dashboard = ({ patientId: propPatientId }) => {
         return "→ stable vs last entry";
     };
 
+    // ─── UNIFIED DATA EXTRACTION LOGIC ENGINE ───
+
+    const lookupMarkerMetadata = (markerKey, registry) => {
+        for (const [, category] of Object.entries(registry)) {
+            if (category.markers[markerKey]) return category.markers[markerKey];
+        }
+        return null;
+    };
+
+    const formatRowLabel = (markerKey, metaObject) => {
+        if (metaObject) return metaObject.label;
+        return markerKey.toUpperCase().replace(/_/g, ' ');
+    };
+
+    const parseRowStatus = (trafficStatus, defaultCfg) => {
+        const cfg = defaultCfg[trafficStatus] || defaultCfg.green;
+        let text = '✓ In range';
+        if (trafficStatus === 'amber') text = '⚠ Low-normal';
+        if (trafficStatus === 'red') text = '⚠ Low';
+        return { text, bg: cfg.bg, color: cfg.text };
+    };
+
+    const calculateDeltaVector = (currentVal, historicalRow, markerKey) => {
+        if (currentVal === undefined || currentVal === null || !historicalRow || historicalRow[markerKey] === undefined) {
+            return { icon: '→', cssColor: '#6B7280' };
+        }
+        const delta = currentVal - historicalRow[markerKey];
+        if (delta > 0) return { icon: '↑', cssColor: '#2D6A4F' };
+        if (delta < 0) return { icon: '↓', cssColor: '#9B2226' };
+        return { icon: '→', cssColor: '#6B7280' };
+    };
+
     const dynamicEnergy = latestSymptomRow?.energy !== undefined ? latestSymptomRow.energy : 7.8;
     const dynamicMood = latestSymptomRow?.mood !== undefined ? latestSymptomRow.mood : 8.4;
     const dynamicSleep = latestSymptomRow?.sleep !== undefined ? latestSymptomRow.sleep : 9.2;
     const dynamicStress = latestSymptomRow?.stress !== undefined ? latestSymptomRow.stress : 1.2;
 
+    // Programmatically calculate total tracked records count based on state payload depth
+    const totalDaysTracked = data.symptoms?.length || 75;
+    const computedWeekNumber = Math.max(1, Math.ceil(totalDaysTracked / 7));
+
     if (loading) {
         return (
             <div style={{ backgroundColor: '#F7F1E8', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0F4C5C', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#0F4C5C', fontWeight: 600, justifyContent: 'center' }}>
                     <Loader2 className="animate-spin" size={24} /> Loading care registry record telemetry...
                 </div>
             </div>
         );
     }
-    console.log(demographics.name)
 
     return (
         <div style={{ backgroundColor: '#F7F1E8', minHeight: '100vh' }}>
@@ -895,22 +921,18 @@ const Dashboard = ({ patientId: propPatientId }) => {
                 </div>
 
                 <div className="nav-right">
-                    {/* Streak is now dynamic */}
                     <div className="nav-streak">🔥 <strong>{streak}</strong> day streak</div>
-
-                    {/* Avatar with click-to-open menu */}
 
                     <div className="nav-avatar"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        style={{ cursor: 'pointer', position: 'relative' }}>
-                        {demographics.name?.charAt(0) || 'U'}
+                        style={{ cursor: 'pointer', position: 'relative', textTransform: 'uppercase' }}>
+                        {demographics.name?.charAt(0) || 'NA'}
 
-                        {/* Dropdown Menu */}
                         {isMenuOpen && (
                             <div style={{
                                 position: 'absolute', top: '50px', right: '0',
                                 background: '#FFFFFF', borderRadius: '8px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                boxBurial: '0 4px 12px rgba(0,0,0,0.15)',
                                 color: '#1F2937', minWidth: '140px',
                                 padding: '8px 0', zIndex: 1000
                             }}>
@@ -925,7 +947,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
             </nav>
 
             <div className="layout">
-                {/* Mobile Drawer Backdrop overlay */}
                 <div className={`sidebar-overlay ${isSidebarOpen ? 'open' : ''}`} onClick={() => setIsSidebarOpen(false)} />
 
                 {/* SIDEBAR NAVIGATION PANEL */}
@@ -976,7 +997,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         <>
                             <div className="ph">
                                 <h1 className="ph-title">Hello, {demographics.name || 'Patient'}</h1>
-                                <p className="ph-sub"><strong>Patient ID: </strong>{activePatientId} <br/> <strong>Goals: </strong>{demographics.goal || 'General Health'}</p>
+                                <p className="ph-sub"><strong>Patient ID: </strong>{activePatientId} <br /> <strong>Goals: </strong>{demographics.goal || 'General Health'}</p>
                             </div>
 
                             <div className="cb" onClick={() => setCurrentScreen('checkin')}>
@@ -987,7 +1008,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 <button className="cb-btn">Check In Now →</button>
                             </div>
 
-                            {/* DYNAMIC METRIC KPI CONTAINER CONNECTED TO BACKEND TELEMETRY SENSORS */}
                             <div className="g4">
                                 <div className="kpi">
                                     <div className="kpi-label">Energy</div>
@@ -1014,9 +1034,8 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             </div>
 
                             <div className="g2">
-                                {/* DYNAMIC TREND CHART */}
                                 <div className="card" style={{ minWidth: 0 }}>
-                                    <div className="card-title">11-Week Trend</div>
+                                    <div className="card-title">{totalDaysTracked ? `${computedWeekNumber}-Week Trend` : "11-Week Trend"}</div>
 
                                     <div style={{ display: 'flex', gap: '16px', marginBottom: '12px', flexWrap: 'wrap' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#6B7280' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#0F4C5C' }}></div>Energy</div>
@@ -1026,7 +1045,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                                     <div style={{ width: '100%', height: 160 }}>
                                         <ResponsiveContainer width="100%" height="100%">
-                                            {/* We map the database data directly here without any static fallback */}
                                             <LineChart data={data.symptoms.map((s, i) => ({
                                                 name: `W${i + 1}`,
                                                 energy: parseFloat(s.energy),
@@ -1037,7 +1055,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                                 <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#6B7280' }} />
                                                 <YAxis domain={[0, 10]} tick={{ fontSize: 9, fill: '#6B7280' }} />
                                                 <Tooltip contentStyle={{ backgroundColor: '#1F2937', color: '#fff', fontSize: '11px', borderRadius: '6px' }} />
-
                                                 <Line connectNulls type="monotone" dataKey="energy" stroke="#0F4C5C" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
                                                 <Line connectNulls type="monotone" dataKey="mood" stroke="#2D6A4F" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
                                                 <Line connectNulls type="monotone" dataKey="sleep" stroke="#C97B2E" strokeWidth={2} dot={{ r: 3 }} isAnimationActive={false} />
@@ -1048,16 +1065,130 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                                 <div className="card">
                                     <div className="card-title">Patterns & Insights</div>
-                                    <div className="ic gr"><div className="ic-tag gr">✓ Positive</div><div className="ic-title">Stress at programme low</div><div className="ic-body">1.2 — lowest in 11 weeks. Even with GI changes, your nervous system is stable.</div></div>
+                                    <div className="ic gr"><div className="ic-tag gr">✓ Positive</div><div className="ic-title">Stress at programme low</div><div className="ic-body">{dynamicStress} — lowest in {computedWeekNumber} weeks. Even with GI changes, your nervous system is stable.</div></div>
                                     <div className="ic am"><div className="ic-tag am">⚠ Watch</div><div className="ic-title">Evening exercise timing</div><div className="ic-body">Sat evening pickleball → Sun energy 7. Daytime sessions perform better for you.</div></div>
                                     <div className="ic am"><div className="ic-tag am">⚠ Monitor</div><div className="ic-title">GI — iron protocol Week 1</div><div className="ic-body">Expected adjustment. Increase hydration on iron days. Should resolve by Week 2.</div></div>
                                 </div>
                             </div>
 
                             <PatientReviewView reviews={data.specialistReviews} />
-                            {/*<IntakeSummary intake={intakeData} />*/}
+                            {/* ═══════════════════════ STYLED LAB RECORD CONTAINER ═══════════════════════ */}
+                            <div className="card">
+                                {/* Serif Heading to match style guide font hierarchy */}
+                                <div className="card-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: 'var(--charcoal)', marginBottom: '16px' }}>
+                                    Lab Record
+                                </div>
 
-                            {/* PANEL LONGITUDINAL MONITORING GRAPH PLOTS TIMELINE */}
+                                <table className="lt" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                    <thead>
+                                        <tr>
+                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Test</th>
+                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Latest</th>
+                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Status</th>
+                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Trend</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {getDynamicBiomarkers().map((markerKey) => {
+                                            const rawValue = mergedLabData[markerKey];
+                                            const meta = lookupMarkerMetadata(markerKey, MARKER_REGISTRY);
+
+                                            // 🚀 1. Resolves shortcut database keys into full registry names dynamically
+                                            const labelText = formatRowLabel(markerKey, meta);
+                                            const measurementUnit = meta?.unit || '';
+                                            const dataValueText = rawValue !== undefined && rawValue !== null && rawValue !== ''
+                                                ? `${rawValue} ${measurementUnit}`.trim()
+                                                : '—';
+
+                                            // 2. Parse mockup traffic classes dynamically from registry variables
+                                            const trafficStatus = meta ? getTrafficLight(rawValue, meta) : 'green';
+                                            const uiStatus = parseRowStatus(trafficStatus, TRAFFIC_CFG);
+
+                                            // 3. Compute metric trend directional vector arrows via logical parsing utility
+                                            const uiTrend = calculateDeltaVector(rawValue, historicalSymptomRow, markerKey);
+                                            const isDownTrend = uiTrend.icon === '↓' || uiTrend.icon?.includes('down');
+                                            const isUpTrend = uiTrend.icon === '↑' || uiTrend.icon?.includes('up');
+
+                                            // Determine badge text variations based on status to match mockup exactly
+                                            let statusLabel = '✓ In range';
+                                            if (trafficStatus === 'amber') statusLabel = '⚠️ Low-normal';
+                                            if (trafficStatus === 'red') statusLabel = '⚠️ Low';
+
+                                            return (
+                                                <tr key={markerKey}>
+                                                    {/* 🚀 Dynamic Label Cell: Standardized font weighting and color scheme matching the mockup */}
+                                                    <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', textTransform: 'capitalize' }}>
+                                                        {labelText}
+                                                    </td>
+                                                    <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>
+                                                        {dataValueText}
+                                                    </td>
+                                                    <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)' }}>
+                                                        <span
+                                                            className={`lb ${trafficStatus === 'amber' || trafficStatus === 'red' ? 'am' : 'gr'}`}
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                padding: '4px 10px',
+                                                                borderRadius: '10px',
+                                                                fontSize: '12px',
+                                                                fontWeight: 600,
+                                                                backgroundColor: uiStatus.bg,
+                                                                color: uiStatus.color
+                                                            }}
+                                                        >
+                                                            {statusLabel}
+                                                        </span>
+                                                    </td>
+                                                    <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)', fontWeight: 'bold', fontSize: '16px', color: isDownTrend ? 'var(--red)' : isUpTrend ? 'var(--green)' : 'var(--grey)' }}>
+                                                        {isDownTrend ? '↓' : isUpTrend ? '↑' : '→'}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+
+
+                                        {getDynamicBiomarkers().length === 0 && (
+                                            <tr>
+                                                <td colSpan="4" style={{ textAlign: 'center', color: 'var(--grey)', padding: '24px', fontSize: '13px' }}>
+                                                    No lab report metrics logged. Click upload to analyze biomarkers.
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </tbody>
+                                </table>
+
+                                {/* Footer Layer matching image_5a19e5.png perfectly */}
+                                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--ivory-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', color: 'var(--grey)' }}>
+                                        Next retest: <strong style={{ color: 'var(--charcoal)', fontWeight: 600 }}></strong>
+                                    </span>
+                                    {/* Hidden input to handle the actual file selection */}
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={handleFileUpload}
+                                        style={{ display: 'none' }}
+                                        accept=".pdf,.png,.jpg,.jpeg"
+                                    />
+
+                                    {/* Updated Button to trigger the hidden input */}
+                                    <button
+                                        className="btn-ghost"
+                                        onClick={() => fileInputRef.current.click()}
+                                        style={{
+                                            fontSize: '13px',
+                                            padding: '6px 14px',
+                                            borderRadius: '8px',
+                                            cursor: 'pointer',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        Upload Result
+                                    </button>
+                                </div>
+                            </div>
+
                             <section style={{ marginBottom: '24px' }}>
                                 <div style={{ borderBottom: '1px solid #EDE7DB', paddingBottom: '6px', marginBottom: '16px' }}>
                                     <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.05em' }}>Longitudinal Panel Tracking Timeline</h2>
@@ -1068,10 +1199,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
                             </section>
-
-                            {/*<section className="card">
-                                <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
-                            </section> */}
 
                             <section className="card">
                                 <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
@@ -1087,7 +1214,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                             navigate(`/clinical-summary/${activePatientId}`, {
                                                 state: {
                                                     profile: demographics,
-
                                                     intake: intakeData,
                                                     labData: getMergedLabData(),
                                                     aiInsights: response.data.success ? response.data.insights : "AI Engine payload execution unfulfilled."
@@ -1117,15 +1243,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 <div className="ph-sub">Sunday, 11 May 2026 · Yesterday you mentioned constipation. How are you feeling today?</div>
                             </div>
 
-                            {/* 1. PROTOCOL REMINDER (Added before form) */}
-                            <div className="card" style={{
-                                marginBottom: '24px',
-                                background: '#FDF3E7',
-                                border: '1px solid #C97B2E',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '12px'
-                            }}>
+                            <div className="card" style={{ marginBottom: '24px', background: '#FDF3E7', border: '1px solid #C97B2E', display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div style={{ fontSize: '20px' }}>💡</div>
                                 <div style={{ fontSize: '13px', color: '#9B2226', fontWeight: 600 }}>
                                     Protocol Reminder: Remember to take your iron supplement on an empty stomach with Vitamin C today.
@@ -1133,7 +1251,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             </div>
 
                             <div className="card">
-                                {/* 2. SLIDER METRICS */}
                                 {[
                                     { label: 'Energy', field: 'energy', icon: '⚡', low: 'Low', high: 'High' },
                                     { label: 'Mood', field: 'mood', icon: '♥', low: 'Low', high: 'High' },
@@ -1155,7 +1272,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     </div>
                                 ))}
 
-                                {/* 3. SYMPTOMS (MULTI-SELECT PILLS) */}
                                 <div className="cs-title">Symptoms today</div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
                                     {['Fatigue', 'Constipation', 'Brain fog', 'Feeling cold', 'Joint pain', 'Hair loss', 'Anxiety', 'Low mood', 'Palpitations'].map(sym => (
@@ -1167,7 +1283,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* 4. BOWEL MOVEMENT (RADIO) */}
                                 <div className="cs-title">Bowel movement today?</div>
                                 <div style={{ display: 'flex', gap: '10px', marginBottom: '24px' }}>
                                     {['Yes', 'No'].map(val => (
@@ -1176,7 +1291,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* 5. BRISTOL STOOL SCALE (RADIO) */}
                                 <div style={{ fontSize: '13px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>Bristol Stool Scale</div>
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
                                     {['Type 1', 'Type 2', 'Type 3', 'Type 4', 'Type 5', 'Type 6', 'Type 7'].map(type => (
@@ -1185,7 +1299,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* 6. DIET COMPLIANCE (RADIO) */}
                                 <div className="cs-title">Diet compliance today</div>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '24px' }}>
                                     {['Yes, fully', 'Mostly (small slip)', 'No (intentional)', 'No (accidental)'].map(opt => (
@@ -1194,7 +1307,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* 7. SUPPLEMENTS (GRID) */}
                                 <div className="cs-title">Supplements taken today</div>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', marginBottom: '24px' }}>
                                     {['Selenium 200mcg', 'Magnesium (eve)', 'B12 + K2', 'Omega-3', 'Iron 50mg (alt day)', 'Zinc 15mg'].map(supp => (
@@ -1209,7 +1321,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* 8. NOTES & SUBMIT */}
                                 <div className="cs-title">Anything else to note?</div>
                                 <textarea
                                     className="ta"
@@ -1223,24 +1334,28 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         </div>
                     )}
 
-                    {/* ═══════════════════════ SCREEN 3: WEEKLY REPORT SCREEN (DYNAMIC & THEME ACCURATE) ═══════════════════════ */}
+                    {/* ═══════════════════════ SCREEN 3: WEEKLY REPORT SCREEN (DYNAMICALLY SYNCHRONIZED) ═══════════════════════ */}
                     {currentScreen === 'reports' && (
                         <div style={{ animation: 'fadeIn 0.15s ease-in-out' }}>
                             {/* PAGE HEADER */}
                             <div className="ph">
-                                <h1 className="ph-title">Week 11 Report</h1>
+                                <h1 className="ph-title">Week {computedWeekNumber} Report</h1>
                                 <p className="ph-sub">
                                     {data.labs?.[0]?.test_date
                                         ? `Data Records Window • Profile Baseline Updated ${new Date(data.labs[0].test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`
-                                        : "April 22–26, 2026 · Day 59–63 on Levothyroxine 25mcg"
+                                        : `April 22–26, 2026 · Day ${Math.max(1, totalDaysTracked - 12)}–${totalDaysTracked} on Levothyroxine 25mcg`
                                     }
                                 </p>
                             </div>
 
-                            {/* HERO MOCKUP TRACKING HIGHLIGHT PANEL */}
+                            {/* HERO HIGHLIGHT PANEL */}
                             <div className="rh" style={{ background: '#0F4C5C', color: '#F7F1E8', padding: '28px', borderRadius: '12px', marginBottom: '24px' }}>
-                                <h2 className="rw" style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 600, color: '#F7F1E8', marginBottom: '4px' }}>Week 11</h2>
-                                <p className="rm" style={{ fontSize: '13px', color: 'rgba(247,241,232,0.7)', marginBottom: '16px' }}>April 22–26, 2026 · 75 days tracked · 100% compliance · New iron protocol started</p>
+                                <h2 className="rw" style={{ fontFamily: "'Playfair Display', serif", fontSize: '32px', fontWeight: 600, color: '#F7F1E8', marginBottom: '4px' }}>
+                                    Week {computedWeekNumber}
+                                </h2>
+                                <p className="rm" style={{ fontSize: '13px', color: 'rgba(247,241,232,0.7)', marginBottom: '16px' }}>
+                                    {totalDaysTracked} days tracked
+                                </p>
 
                                 <div className="rk" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '16px' }}>
                                     <div className="rkc" style={{ background: 'rgba(247,241,232,0.1)', borderRadius: '10px', padding: '14px', textAlign: 'center', border: 'none', boxShadow: 'none' }}>
@@ -1283,7 +1398,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                             <span className="dbadge gr" style={{ background: '#EAF5EE', color: '#2D6A4F', display: 'inline-block', fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', padding: '2px 8px', borderRadius: '4px', marginLeft: '6px' }}>Green</span>
                                         </div>
                                         <div className="dd" style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>
-                                            TSH {mergedLabData?.tsh !== undefined ? mergedLabData.tsh : '2.13'} in healthy range. Sweating fully resolved. Zero palpitations across 63 days. Continue 25mcg — no action needed.
+                                            TSH {mergedLabData?.tsh !== undefined ? mergedLabData.tsh : '2.13'} in healthy range. Sweating fully resolved. Zero palpitations across {totalDaysTracked} days. Continue 25mcg — no action needed.
                                         </div>
                                     </div>
                                 </div>
@@ -1330,11 +1445,11 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                             {/* COMPLIANCE INSIGHTS BLOCKS */}
                             <div className="card" style={{ marginBottom: '20px' }}>
-                                <div className="card-title">Week 11 Patterns</div>
+                                <div className="card-title">Week {computedWeekNumber} Patterns</div>
 
                                 <div className="ic gr" style={{ background: '#EAF5EE', borderLeft: '4px solid #2D6A4F', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
                                     <div className="ic-tag gr" style={{ fontSize: '10px', fontWeight: 700, color: '#2D6A4F', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>✓ Milestone</div>
-                                    <div className="ic-title" style={{ fontSize: '14px', fontWeight: 600, color: '#1F2937', marginBottom: '4px' }}>Stress {dynamicStress} — lowest in 11 weeks</div>
+                                    <div className="ic-title" style={{ fontSize: '14px', fontWeight: 600, color: '#1F2937', marginBottom: '4px' }}>Stress {dynamicStress} — lowest in {computedWeekNumber} weeks</div>
                                     <div className="ic-body" style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>Even with a new medication protocol and GI changes, your stress stayed at near-zero all week.</div>
                                 </div>
 
@@ -1346,8 +1461,8 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                                 <div className="ic gr" style={{ background: '#EAF5EE', borderLeft: '4px solid #2D6A4F', padding: '16px', borderRadius: '8px', marginBottom: '12px' }}>
                                     <div className="ic-tag gr" style={{ fontSize: '10px', fontWeight: 700, color: '#2D6A4F', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>✓ Positive</div>
-                                    <div className="ic-title" style={{ fontSize: '14px', fontWeight: 600, color: '#1F2937', marginBottom: '4px' }}>100% diet compliance — first zero-slip week</div>
-                                    <div className="ic-body" style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>Zero slips, zero deviations. After 75 days, this protocol has become habitual.</div>
+                                    <div className="ic-title">100% diet compliance — first zero-slip week</div>
+                                    <div className="ic-body" style={{ fontSize: '13px', color: '#6B7280', lineHeight: 1.5 }}>Zero slips, zero deviations. After {totalDaysTracked} days, this protocol has become habitual.</div>
                                 </div>
                             </div>
 
@@ -1379,7 +1494,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                     {/* ═══════════════════════ SCREEN 4: ADVOCACY DOC SCREEN ═══════════════════════ */}
                     {currentScreen === 'advocacy' && (
                         <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
-                            {/* PAGE HEADER LAYER */}
                             <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
                                 <div>
                                     <div className="ph-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '26px', fontWeight: 600, color: '#1F2937' }}>
@@ -1397,10 +1511,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 </button>
                             </div>
 
-                            {/* CONTAINER CARD CONTAINER BACKGROUND */}
-                            <div className="card" style={{ background: '#FFFFFF', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(15,76,92,0.08)', border: '1px solid rgba(15,76,92,0.06)', marginTop: '24px' }}>
-
-                                {/* 1. PATIENT CONTEXT FRAME PANEL */}
+                            <div className="card" style={{ background: '#FFFFFF', borderRadius: '12px', padding: '24px', boxBurial: '0 1px 3px rgba(15,76,92,0.08)', border: '1px solid rgba(15,76,92,0.06)', marginTop: '24px' }}>
                                 <div style={{ marginBottom: '28px' }}>
                                     <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
                                         Patient Context
@@ -1423,7 +1534,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                                 <tr>
                                                     <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', fontWeight: 600, color: '#6B7280' }}>Medication Track</td>
                                                     <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', color: '#1F2937' }}>
-                                                        Levothyroxine 25mcg daily (taken 6am). Day 77 on profile timeline records.
+                                                        Levothyroxine 25mcg daily (taken 6am). Day {totalDaysTracked + 2} on profile timeline records.
                                                     </td>
                                                 </tr>
                                                 <tr>
@@ -1437,7 +1548,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     </div>
                                 </div>
 
-                                {/* 2. RESTORED & POLISHED LABORATORY TRAJECTORY SECTION PANEL */}
                                 <div style={{ marginBottom: '28px' }}>
                                     <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
                                         Laboratory Trajectory
@@ -1482,7 +1592,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                                     const trafficStatus = getTrafficLight(latestValue, markerMeta);
                                                     const trafficCfg = TRAFFIC_CFG[trafficStatus] || TRAFFIC_CFG.missing;
 
-                                                    // Hardcoded structural defaults used as safe fallbacks
                                                     const staticFallbacks = {
                                                         tsh: ['4.48', '—', '2.13'],
                                                         free_t4: ['1.01', '1.0', '1.1'],
@@ -1530,46 +1639,43 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '8px', fontStyle: 'italic' }}>* Functional optimal range for Hashimoto's/levothyroxine patients: 70–90 ng/mL</div>
                                 </div>
 
-                                {/* 3. PROVIDER CONSULTATION INQUIRIES LIST */}
                                 <div>
                                     <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
                                         Questions for This Consultation
                                     </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
                                         <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>1</div>
+                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>1</div>
                                             <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
                                                 <strong>Iron supplementation:</strong> Is the current dosing protocol tracking as intended? Ferritin levels sit suboptimal at <span style={{ fontWeight: 700, color: '#C97B2E' }}>{mergedLabData?.ferritin !== undefined ? `${mergedLabData.ferritin} ng/mL` : '19 ng/mL'}</span>, demonstrating incorrect trajectory down from baseline records.
                                             </div>
                                         </div>
 
                                         <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>2</div>
+                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>2</div>
                                             <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
                                                 <strong>Should ferritin be rechecked sooner than May?</strong> Ferritin metrics are moving inverse to programmatic ingestion pathways.
                                             </div>
                                         </div>
 
                                         <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>3</div>
+                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>3</div>
                                             <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
                                                 <strong>Levothyroxine dose optimization boundaries:</strong> Does the current synchronized profile calculation value of <span style={{ fontWeight: 700, color: '#2D6A4F' }}>TSH ({mergedLabData?.tsh !== undefined ? `${mergedLabData.tsh} mIU/L` : '2.13 mIU/L'})</span> justify keeping the current 25mcg self-titrated pathway?
                                             </div>
                                         </div>
 
                                         <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: 'none' }}>
-                                            <div className="qn-num" style={{ width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>4</div>
+                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>4</div>
                                             <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
                                                 <strong>Subjective parameter correlations:</strong> Cross-evaluating clinical records threshold patterns. Current active live telemetry snapshot tracks an average continuous daily stress margin value index score of <strong>{dynamicStress} / 10</strong>.
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
                         </div>
                     )}
-
 
                     {/* ═══════════════════════ SCREEN 5: MY PROTOCOL SCREEN ═══════════════════════ */}
                     {currentScreen === 'protocol' && (
@@ -1582,7 +1688,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 <button className="btn-primary">⬇ Download PDF</button>
                             </div>
 
-                            {/* SUMMARY CARD */}
                             <div className="card" style={{ background: '#0F4C5C', border: 'none', color: '#F7F1E8', marginBottom: '22px' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                                     <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)', marginBottom: '6px' }}>Diagnosis</div><div style={{ fontSize: '14px', fontWeight: 600 }}>Hashimoto's Thyroiditis</div><div style={{ fontSize: '12px', color: 'rgba(247,241,232,0.7)', marginTop: '2px' }}>Diagnosed Jan 2026</div></div>
@@ -1592,7 +1697,6 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             </div>
 
                             <div className="card">
-                                {/* TABS */}
                                 <div className="pt-tabs">
                                     {['nut', 'sup', 'exc', 'slp', 'str', 'chk'].map(tab => (
                                         <div key={tab} className={`pt-tab ${activeProtocolTab === tab ? 'on' : ''}`} onClick={() => setActiveProtocolTab(tab)}>
@@ -1601,10 +1705,9 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
 
-                                {/* CONTENT AREAS */}
                                 {activeProtocolTab === 'nut' && (
                                     <div className="pt-content on">
-                                        <p style={{ fontSize: '13px', color: '#6B7280', padding: '4px 0 16px' }}>93% compliance over 75 days — this is now a habit, not a restriction.</p>
+                                        <p style={{ fontSize: '13px', color: '#6B7280', padding: '4px 0 16px' }}>93% compliance over {totalDaysTracked} days — this is now a habit, not a restriction.</p>
                                         <div className="pr"><div className="pr-icon">🚫</div><div><div className="pr-title">Always avoid: Gluten, dairy, soy, refined sugar</div><div className="pr-detail">Gluten triggers molecular mimicry with thyroid tissue. Your dramatic improvement confirms these were key triggers.</div></div></div>
                                         <div className="pr"><div className="pr-icon">🐟</div><div><div className="pr-title">Protein at every meal — 20–30g target</div><div className="pr-detail">Wild-caught fish, pasture-raised poultry. Protein supports thyroid hormone production.</div></div></div>
                                     </div>
