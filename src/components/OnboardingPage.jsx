@@ -313,7 +313,7 @@ const OnboardingPage = () => {
                   name="conditionOther"
                   value={formData.conditionOther}
                   onChange={handleChange}
-                  placeholder="e.g. Thyroid B+, ..."
+                  placeholder="e.g. Diabetes, Hypertension..."
                   className="w-full p-3 border border-[#0F4C5C]/20 rounded-lg text-[14px] outline-none text-[#1F2937] bg-white"
                 />
               </div>
@@ -650,7 +650,7 @@ const OnboardingPage = () => {
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-[#6B7280] mb-1">Location (City, State)</label>
-                    <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full p-2.5 border border-[#0F4C5C]/20 rounded-lg text-[13px] outline-none" placeholder="e.g. Hyderabad, TS" required />
+                    <input type="text" name="location" value={formData.location} onChange={handleChange} className="w-full p-2.5 border border-[#0F4C5C]/20 rounded-lg text-[13px] outline-none" placeholder="e.g. London" required />
                   </div>
                 </div>
               </div>

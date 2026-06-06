@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, UNSAFE_createClientRoutesWithHMRRevalidationOptOut } from 'react-router-dom';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import axios from 'axios';
 import Papa from 'papaparse';
@@ -497,7 +497,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
     // State mechanics for internal subjective monitoring checks
     const [checkinForm, setCheckinForm] = useState({
-        energy: 8, mood: 9, sleep: 9, stress: 1,
+        energy: 0, mood: 0, sleep: 0, stress: 0,
         symptoms: [],
         bm: '',
         bristol: '',
@@ -549,6 +549,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}` }
             });
             if (res.data.success) {
+               console.log(res.data)
                 setData({
                     labs: res.data.labs,
                     symptoms: res.data.symptoms,
@@ -774,10 +775,10 @@ const Dashboard = ({ patientId: propPatientId }) => {
         return { icon: '→', cssColor: '#6B7280' };
     };
 
-    const dynamicEnergy = latestSymptomRow?.energy !== undefined ? latestSymptomRow.energy : 7.8;
-    const dynamicMood = latestSymptomRow?.mood !== undefined ? latestSymptomRow.mood : 8.4;
-    const dynamicSleep = latestSymptomRow?.sleep !== undefined ? latestSymptomRow.sleep : 9.2;
-    const dynamicStress = latestSymptomRow?.stress !== undefined ? latestSymptomRow.stress : 1.2;
+    const dynamicEnergy = latestSymptomRow?.energy !== undefined ? latestSymptomRow.energy : 0;
+    const dynamicMood = latestSymptomRow?.mood !== undefined ? latestSymptomRow.mood : 0;
+    const dynamicSleep = latestSymptomRow?.sleep !== undefined ? latestSymptomRow.sleep : 0;
+    const dynamicStress = latestSymptomRow?.stress !== undefined ? latestSymptomRow.stress : 0;
 
     // Programmatically calculate total tracked records count based on state payload depth
     const totalDaysTracked = data.symptoms?.length || 75;
@@ -1189,7 +1190,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 </div>
                             </div>
 
-                            <section style={{ marginBottom: '24px' }}>
+                            {/*<section style={{ marginBottom: '24px' }}>
                                 <div style={{ borderBottom: '1px solid #EDE7DB', paddingBottom: '6px', marginBottom: '16px' }}>
                                     <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.05em' }}>Longitudinal Panel Tracking Timeline</h2>
                                 </div>
@@ -1199,6 +1200,10 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     ))}
                                 </div>
                             </section>
+
+                            <section className="card">
+                                <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
+                            </section>*/}
 
                             <section className="card">
                                 <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
@@ -1677,7 +1682,30 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         </div>
                     )}
 
-                    {/* ═══════════════════════ SCREEN 5: MY PROTOCOL SCREEN ═══════════════════════ */}
+                    {/* ═══════════════════════ SCREEN 5: Lab Results SCREEN ═══════════════════════ */}
+                    {currentScreen === "labs" && (
+                        <>
+                            <section style={{ marginBottom: '24px' }}>
+                                <div style={{ borderBottom: '1px solid #EDE7DB', paddingBottom: '6px', marginBottom: '16px' }}>
+                                    <h2 style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', letterSpacing: '0.05em' }}>Longitudinal Panel Tracking Timeline</h2>
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                                    {getDynamicBiomarkers().map(markerKey => (
+                                        <ChartCard key={markerKey} title={markerKey} dataKey={markerKey} color="#0F4C5C" data={data.labs} />
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="card">
+                                <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
+                            </section>
+
+
+
+                        </>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 6: MY PROTOCOL SCREEN ═══════════════════════ */}
                     {currentScreen === 'protocol' && (
                         <>
                             <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
