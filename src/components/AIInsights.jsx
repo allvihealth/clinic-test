@@ -95,7 +95,7 @@ const AIInsights = ({ patientId, intake }) => {
             <div className="flex flex-col md:flex-row md:items-center justify-between px-2 no-print gap-4">
                 <h2 className="text-xs font-black text-[#1F2937]/40 uppercase tracking-[0.25em]">Allvi AI Health Insights</h2>
                 {intake?.goals && (
-                    <div className="bg-[#0F4C5C]/5 text-[#0F4C5C] px-3 py-1.5 rounded-md text-[10px] font-bold border border-[#0F4C5C]/10 flex-1 md:max-w-md truncate">
+                    <div className="bg-[#0F4C5C]/5 text-[#0F4C5C] px-3 py-1.5 rounded-md text-[10px] font-bold border border-[#0F4C5C]/10 flex-1 md:max-w-md truncate text-center">
                         Target: {intake.goals}
                     </div>
                 )}

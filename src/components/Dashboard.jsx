@@ -549,7 +549,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('allvi_auth_token')}` }
             });
             if (res.data.success) {
-               console.log(res.data)
+                console.log(res.data)
                 setData({
                     labs: res.data.labs,
                     symptoms: res.data.symptoms,
@@ -815,7 +815,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .si-icon { width: 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
     
     .main { flex: 1; padding: 32px; max-width: 100%; text-align: left; box-sizing: border-box; }
-    .card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); border: 1px solid rgba(15,76,92,0.06); margin-bottom: 24px; }
+    .card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); border: 1px solid rgba(15,76,92,0.06); margin-bottom: 24px; max-height: 100%; }
     .ph { margin-bottom: 28px; }
     .ph-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: #1F2937; }
     .ph-sub { font-size: 14px; color: #6B7280; margin-top: 4px; }
@@ -852,7 +852,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .do.on { background: #0F4C5C; border-color: #0F4C5C; color: #F7F1E8; }
     .btn-primary { background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-ghost { background: none; color: #0F4C5C; border: 1px solid #0F4C5C; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .sub-btn { width: 100%; background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .sub-btn { width: 100%; background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 14px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; display:flex; justify-content: center}
     .ta { width: 100%; min-height: 80px; padding: 12px 16px; border: 1px solid rgba(15,76,92,0.15); border-radius: 8px; font-family: inherit; font-size: 14px; color: #1F2937; background: #F7F1E8; resize: vertical; outline: none; line-height: 1.5; }
     
     .sl-row { margin-bottom: 24px; }
@@ -891,10 +891,34 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .mir { display: flex; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #EDE7DB; }
     .mi { flex: 1; padding: 11px 16px; border: 1px solid rgba(15,76,92,0.15); border-radius: 8px; font-family: inherit; font-size: 14px; background: #F7F1E8; color: #1F2937; outline: none; }
     .ms { background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
-
+    /* Add these lines inside the __html template string in your code */
+    .sg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .supp { position: relative; display: flex; align-items: center; background-color: #F9F8F6; border: 1px solid #F0ECE3; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 500; cursor: help; }
+    .supp .tt { visibility: hidden; width: 240px; background-color: #1F2937; color: #fff; text-align: left; border-radius: 6px; padding: 8px 12px; position: absolute; z-index: 10; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; line-height: 1.4; font-weight: 400; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .supp:hover .tt { visibility: visible; opacity: 1; }
+    .sd { width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
+    .sd.am { background-color: #F59E0B; }
+    .sd-days { margin-left: auto; color: #6B7280; font-size: 12px; font-weight: 600; }
+    .pb { width: 100%; height: 6px; background-color: #ECE9E1; border-radius: 10px; overflow: hidden; }
+    .pb-fill { height: 100%; background-color: #0F4C5C; border-radius: 10px; }
     .mobile-menu-toggle { display: none; background: none; border: none; color: #F7F1E8; cursor: pointer; padding: 4px; align-items: center; justify-content: center; }
     .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.4); z-index: 85; backdrop-filter: blur(2px); }
+    /* ─── CUSTOM CLINICAL TABLE STYLES ─── */
+    .lt { width: 100%; border-collapse: collapse; text-align: left; }
+    .lt th { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6B7280; padding: 8px 12px; text-align: left; border-bottom: 1px solid #EDE7DB; }
+    .lt td { padding: 12px; font-size: 13px; border-bottom: 1px solid #EDE7DB; color: #1F2937; }
+    .lt tr:last-child td { border-bottom: none; }
+    .lb { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+    .lb.gr { background: #D1FAE5; color: #065F46; }
+    .lb.am { background: #FEF3C7; color: #92400E; }
+    /* ─── WHAT'S NEXT COMPONENT UTILITIES ─── */
+    .at { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; display: inline-block; white-space: nowrap; margin-top: 2px; text-align: center; min-width: 65px; }
+    .at.w { background: #FDF3E7; color: #C97B2E; }
+    .at.o { background: #E8F4F7; color: #0F4C5C; }
+    .at.d { background: #EAF5EE; color: #2D6A4F; }
+    .at-text { fontSize: 13px; color: #1F2937; line-height: 1.5; }
 
+    .mobile-menu-toggle { display: none; background: none; border: none; color: #F7F1E8; cursor: pointer; padding: 4px; align-items: center; justify-content: center; }
     @media (max-width: 768px) {
         .mobile-menu-toggle { display: flex; }
         .sidebar { position: fixed; left: 0; top: 64px; height: calc(100vh - 64px); transform: translateX(-100%); box-shadow: 4px 0 12px rgba(0,0,0,0.1); }
@@ -974,6 +998,9 @@ const Dashboard = ({ patientId: propPatientId }) => {
                     </div>
                     <div className={`si ${currentScreen === 'protocol' ? 'on' : ''}`} onClick={() => { setCurrentScreen('protocol'); setIsSidebarOpen(false); }}>
                         <span className="si-icon"><BookOpen size={16} /></span> My Protocol
+                    </div>
+                    <div className={`si ${currentScreen === 'insights' ? 'on' : ''}`} onClick={() => { setCurrentScreen('insights'); setIsSidebarOpen(false); }}>
+                        <span className="si-icon"><FlaskConical size={16} /></span> Health Insights
                     </div>
 
                     <div className="si-section">Support</div>
@@ -1074,121 +1101,149 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                             <PatientReviewView reviews={data.specialistReviews} />
                             {/* ═══════════════════════ STYLED LAB RECORD CONTAINER ═══════════════════════ */}
-                            <div className="card">
-                                {/* Serif Heading to match style guide font hierarchy */}
-                                <div className="card-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: 'var(--charcoal)', marginBottom: '16px' }}>
-                                    Lab Record
+
+                            <div className="g2">
+                                {/* CARD 1: SUPPLEMENT COMPLIANCE MATRIX CONTAINER */}
+                                <div className="card">
+                                    <div className="card-title">Supplement Compliance — This Week</div>
+                                    <div className="sg">
+                                        <div className="supp"><div className="sd"></div>Selenium 200mcg<span className="sd-days">5/5</span><div class="tt">Essential for T4→T3 conversion. Shown to reduce TPO antibodies over time.</div></div>
+                                        <div className="supp"><div class="sd"></div>Magnesium (eve)<span class="sd-days">5/5</span><div class="tt">Sleep, mood, gut motility, muscle relaxation. Take 30–60 mins before bed.</div></div>
+                                        <div className="supp"><div class="sd"></div>B12 + K2<span class="sd-days">5/5</span><div class="tt">Energy, mood. K2 supports bone health alongside D3.</div></div>
+                                        <div className="supp"><div class="sd"></div>Omega-3<span class="sd-days">5/5</span><div class="tt">Anti-inflammatory. May reduce TPO antibodies. Supports brain health and mood.</div></div>
+                                        <div className="supp"><div class="sd"></div>Multivitamin<span class="sd-days">5/5</span><div class="tt">Broad micronutrient support. Take with food.</div></div>
+                                        <div className="supp"><div class="sd am"></div>Iron 50mg (alt)<span class="sd-days">4/5</span><div class="tt">Ferritin at 19 → target 70–90. Alt day dosing maximises absorption via hepcidin reset. Empty stomach + Vit C.</div></div>
+                                        <div className="supp"><div class="sd"></div>Zinc 15mg<span class="sd-days">5/5</span><div class="tt">T4→T3 conversion, immune function, hair health.</div></div>
+                                        <div className="supp"><div class="sd"></div>Curcumin 500mg<span class="sd-days">5/5</span><div class="tt">Supports T-regulatory immune response. Helps modulate autoimmune inflammation.</div></div>
+                                    </div>
+                                    <div style={{ marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #EDE7DB' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#6B7280', marginBottom: '6px' }}>
+                                            <span>Diet compliance</span>
+                                            <span style={{ fontWeight: 600, color: '#10B981' }}>5/5 days — 100%</span>
+                                        </div>
+                                        <div className="pb"><div className="pb-fill" style={{ width: '100%' }}></div></div>
+                                    </div>
                                 </div>
 
-                                <table className="lt" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                    <thead>
-                                        <tr>
-                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Test</th>
-                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Latest</th>
-                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Status</th>
-                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Trend</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {getDynamicBiomarkers().map((markerKey) => {
-                                            const rawValue = mergedLabData[markerKey];
-                                            const meta = lookupMarkerMetadata(markerKey, MARKER_REGISTRY);
+                                {/* CARD 2: REFACTORED LIVE LAB RECORD PANEL */}
+                                <div className="card">
+                                    {/* Serif Heading to match style guide font hierarchy */}
+                                    <div className="card-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '18px', fontWeight: 600, color: 'var(--charcoal)', marginBottom: '16px' }}>
+                                        Lab Record
+                                    </div>
 
-                                            // 🚀 1. Resolves shortcut database keys into full registry names dynamically
-                                            const labelText = formatRowLabel(markerKey, meta);
-                                            const measurementUnit = meta?.unit || '';
-                                            const dataValueText = rawValue !== undefined && rawValue !== null && rawValue !== ''
-                                                ? `${rawValue} ${measurementUnit}`.trim()
-                                                : '—';
+                                    <table className="lt" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                        <thead>
+                                            <tr>
+                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Test</th>
+                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Latest</th>
+                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Status</th>
+                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Trend</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {getDynamicBiomarkers().map((markerKey) => {
+                                                const rawValue = mergedLabData[markerKey];
+                                                const meta = lookupMarkerMetadata(markerKey, MARKER_REGISTRY);
 
-                                            // 2. Parse mockup traffic classes dynamically from registry variables
-                                            const trafficStatus = meta ? getTrafficLight(rawValue, meta) : 'green';
-                                            const uiStatus = parseRowStatus(trafficStatus, TRAFFIC_CFG);
+                                                // 🚀 1. Resolves shortcut database keys into full registry names dynamically
+                                                const labelText = formatRowLabel(markerKey, meta);
+                                                const measurementUnit = meta?.unit || '';
+                                                const dataValueText = rawValue !== undefined && rawValue !== null && rawValue !== ''
+                                                    ? `${rawValue} ${measurementUnit}`.trim()
+                                                    : '—';
 
-                                            // 3. Compute metric trend directional vector arrows via logical parsing utility
-                                            const uiTrend = calculateDeltaVector(rawValue, historicalSymptomRow, markerKey);
-                                            const isDownTrend = uiTrend.icon === '↓' || uiTrend.icon?.includes('down');
-                                            const isUpTrend = uiTrend.icon === '↑' || uiTrend.icon?.includes('up');
+                                                // 2. Parse mockup traffic classes dynamically from registry variables
+                                                const trafficStatus = meta ? getTrafficLight(rawValue, meta) : 'green';
+                                                const uiStatus = parseRowStatus(trafficStatus, TRAFFIC_CFG);
 
-                                            // Determine badge text variations based on status to match mockup exactly
-                                            let statusLabel = '✓ In range';
-                                            if (trafficStatus === 'amber') statusLabel = '⚠️ Low-normal';
-                                            if (trafficStatus === 'red') statusLabel = '⚠️ Low';
+                                                // 3. Compute metric trend directional vector arrows via logical parsing utility
+                                                const uiTrend = calculateDeltaVector(rawValue, historicalSymptomRow, markerKey);
+                                                const isDownTrend = uiTrend.icon === '↓' || uiTrend.icon?.includes('down');
+                                                const isUpTrend = uiTrend.icon === '↑' || uiTrend.icon?.includes('up');
 
-                                            return (
-                                                <tr key={markerKey}>
-                                                    {/* 🚀 Dynamic Label Cell: Standardized font weighting and color scheme matching the mockup */}
-                                                    <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', textTransform: 'capitalize' }}>
-                                                        {labelText}
-                                                    </td>
-                                                    <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>
-                                                        {dataValueText}
-                                                    </td>
-                                                    <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)' }}>
-                                                        <span
-                                                            className={`lb ${trafficStatus === 'amber' || trafficStatus === 'red' ? 'am' : 'gr'}`}
-                                                            style={{
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                padding: '4px 10px',
-                                                                borderRadius: '10px',
-                                                                fontSize: '12px',
-                                                                fontWeight: 600,
-                                                                backgroundColor: uiStatus.bg,
-                                                                color: uiStatus.color
-                                                            }}
-                                                        >
-                                                            {statusLabel}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)', fontWeight: 'bold', fontSize: '16px', color: isDownTrend ? 'var(--red)' : isUpTrend ? 'var(--green)' : 'var(--grey)' }}>
-                                                        {isDownTrend ? '↓' : isUpTrend ? '↑' : '→'}
+                                                // Determine badge text variations based on status to match mockup exactly
+                                                let statusLabel = '✓ In range';
+                                                if (trafficStatus === 'amber') statusLabel = '⚠️ Low-normal';
+                                                if (trafficStatus === 'red') statusLabel = '⚠️ Low';
+
+                                                return (
+                                                    <tr key={markerKey}>
+                                                        {/* 🚀 Dynamic Label Cell: Standardized font weighting and color scheme matching the mockup */}
+                                                        <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', textTransform: 'capitalize' }}>
+                                                            {labelText}
+                                                        </td>
+                                                        <td style={{ padding: '12px', fontSize: '14px', color: 'var(--charcoal)', borderBottom: '1px solid var(--ivory)', fontWeight: 600, fontFamily: "'Playfair Display', serif" }}>
+                                                            {dataValueText}
+                                                        </td>
+                                                        <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)' }}>
+                                                            <span
+                                                                className={`lb ${trafficStatus === 'amber' || trafficStatus === 'red' ? 'am' : 'gr'}`}
+                                                                style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    padding: '4px 10px',
+                                                                    borderRadius: '10px',
+                                                                    fontSize: '12px',
+                                                                    fontWeight: 600,
+                                                                    backgroundColor: uiStatus.bg,
+                                                                    color: uiStatus.color
+                                                                }}
+                                                            >
+                                                                {statusLabel}
+                                                            </span>
+                                                        </td>
+                                                        <td style={{ padding: '12px', borderBottom: '1px solid var(--ivory)', fontWeight: 'bold', fontSize: '16px', color: isDownTrend ? 'var(--red)' : isUpTrend ? 'var(--green)' : 'var(--grey)' }}>
+                                                            {isDownTrend ? '↓' : isUpTrend ? '↑' : '→'}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+
+
+                                            {getDynamicBiomarkers().length === 0 && (
+                                                <tr>
+                                                    <td colSpan="4" style={{ textAlign: 'center', color: 'var(--grey)', padding: '24px', fontSize: '13px' }}>
+                                                        No lab report metrics logged. Click upload to analyze biomarkers.
                                                     </td>
                                                 </tr>
-                                            );
-                                        })}
+                                            )}
+                                        </tbody>
+                                    </table>
 
+                                    {/* Footer Layer matching image_5a19e5.png perfectly */}
+                                    <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--ivory-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontSize: '13px', color: 'var(--grey)' }}>
+                                            Next retest: <strong style={{ color: 'var(--charcoal)', fontWeight: 600 }}></strong>
+                                        </span>
+                                        {/* Hidden input to handle the actual file selection */}
+                                        <input
+                                            type="file"
+                                            ref={fileInputRef}
+                                            onChange={handleFileUpload}
+                                            style={{ display: 'none' }}
+                                            accept=".pdf,.png,.jpg,.jpeg"
+                                        />
 
-                                        {getDynamicBiomarkers().length === 0 && (
-                                            <tr>
-                                                <td colSpan="4" style={{ textAlign: 'center', color: 'var(--grey)', padding: '24px', fontSize: '13px' }}>
-                                                    No lab report metrics logged. Click upload to analyze biomarkers.
-                                                </td>
-                                            </tr>
-                                        )}
-                                    </tbody>
-                                </table>
-
-                                {/* Footer Layer matching image_5a19e5.png perfectly */}
-                                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid var(--ivory-dark)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span style={{ fontSize: '13px', color: 'var(--grey)' }}>
-                                        Next retest: <strong style={{ color: 'var(--charcoal)', fontWeight: 600 }}></strong>
-                                    </span>
-                                    {/* Hidden input to handle the actual file selection */}
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        onChange={handleFileUpload}
-                                        style={{ display: 'none' }}
-                                        accept=".pdf,.png,.jpg,.jpeg"
-                                    />
-
-                                    {/* Updated Button to trigger the hidden input */}
-                                    <button
-                                        className="btn-ghost"
-                                        onClick={() => fileInputRef.current.click()}
-                                        style={{
-                                            fontSize: '13px',
-                                            padding: '6px 14px',
-                                            borderRadius: '8px',
-                                            cursor: 'pointer',
-                                            fontWeight: 600
-                                        }}
-                                    >
-                                        Upload Result
-                                    </button>
+                                        {/* Updated Button to trigger the hidden input */}
+                                        <button
+                                            className="btn-ghost"
+                                            onClick={() => fileInputRef.current.click()}
+                                            style={{
+                                                fontSize: '13px',
+                                                padding: '6px 14px',
+                                                borderRadius: '8px',
+                                                cursor: 'pointer',
+                                                fontWeight: 600
+                                            }}
+                                        >
+                                            Upload Result
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+
+
 
                             {/*<section style={{ marginBottom: '24px' }}>
                                 <div style={{ borderBottom: '1px solid #EDE7DB', paddingBottom: '6px', marginBottom: '16px' }}>
@@ -1205,9 +1260,35 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 <LabAnalysis labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} patientLabRanges={data.labRanges} />
                             </section>*/}
 
-                            <section className="card">
+                            <div className="card">
+                                <div className="card-title">What's Next</div>
+
+                                <div className="ai" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '14px 0', borderBottom: '1px solid #EDE7DB' }}>
+                                    <div><div className="at w">Watch</div></div>
+                                    <div className="at-text">GI symptoms from iron — should ease by Week 2. Flag to endo if constipation persists or worsens after 2 weeks.</div>
+                                </div>
+
+                                <div className="ai" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '14px 0', borderBottom: '1px solid #EDE7DB' }}>
+                                    <div><div className="at o">Ongoing</div></div>
+                                    <div className="at-text"><strong>Iron protocol:</strong> 50mg ferrous bisglycinate every other day, empty stomach + Vitamin C. Avoid coffee/tea/calcium within 1hr.</div>
+                                </div>
+
+                                <div className="ai" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', padding: '14px 0', borderBottom: 'none' }}>
+                                    <div><div className="at d">May</div></div>
+                                    <div className="at-text"><strong>Ferritin recheck + TPO antibodies</strong> — 3-month mark. First picture of whether the new protocol is working.</div>
+                                </div>
+
+                                <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #EDE7DB', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                                    {/* Navigates neatly via your routing state setup parameters */}
+                                    <button className="btn-primary" onClick={() => setCurrentScreen('advocacy')}>Request Advocacy Doc</button>
+                                    <button className="btn-ghost" onClick={() => setIsModalOpen(true)}>Enter Appointment Date</button>
+                                    <button className="btn-ghost" onClick={() => setCurrentScreen('insights')}>See Health Insights</button>
+                                </div>
+                            </div>
+
+                            {/*<section className="card">
                                 <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
-                            </section>
+                            </section>*/}
 
                             <div style={{ textAlign: 'center', marginTop: '32px' }}>
                                 <button
@@ -1775,7 +1856,15 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         </>
                     )}
 
-                    {/* ═══════════════════════ SCREEN 6: MESSAGES SCREEN ═══════════════════════ */}
+                    {/* ═══════════════════════ SCREEN 7: Health Insights SCREEN ═══════════════════════ */}
+                    {currentScreen === "insights" && (
+
+                        <section className="card">
+                            <AIInsights patientId={activePatientId} labData={getMergedLabData()} patientGoal={demographics.goal || 'general'} demographics={demographics} intake={intakeData} />
+                        </section>
+                    )}
+
+                    {/* ═══════════════════════ SCREEN 8: MESSAGES SCREEN ═══════════════════════ */}
                     {currentScreen === 'messages' && (
                         <>
                             <div className="ph">
@@ -1822,7 +1911,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', marginBottom: '8px' }}>Operational Inquiry Parameters</label>
                             <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Detail current tracking status updates or programmatic clinical inquiries..." className="ta" style={{ width: '100%', minHeight: '120px', marginBottom: '16px' }} />
                             <button onClick={handleAppointmentSubmit} disabled={sending || !notes.trim()} className="sub-btn" style={{ opacity: (sending || !notes.trim()) ? 0.6 : 1 }}>
-                                {sending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} />} Submit Message Parameters
+                                {sending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} className="inline mr-2"/>} Submit Message Parameters
                             </button>
                         </div>
                     </div>
