@@ -3,7 +3,8 @@ import { Routes, Route, useParams, useNavigate, useLocation } from 'react-router
 import Navbar from './components/Navbar';
 import Phase1Upload from './components/Phase1Upload';
 import Phase1Review from './components/Phase1Review';
-import Dashboard from './components/Dashboard';
+//import Dashboard from './components/Dashboard';
+import Dashboard from './components/dashboard/Dashboard';
 import AdminPortal from './components/AdminPortal';
 import PatientProfile from './components/PatientProfile';
 import UserPortal from './components/userAuth/UserPortal';
