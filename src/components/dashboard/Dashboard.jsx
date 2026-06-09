@@ -599,8 +599,8 @@ const handleRequestAppointment = async () => {
         const token = localStorage.getItem('allvi_auth_token');
 
         // 🛡️ Pass headers as the third argument in axios.post
-        await axios.post(
-            `${baseURL}/api/patient/request-appointment`, 
+        const res = await axios.post(
+            `${baseURL}/api/patient/request-appointment/${activePatientId}`, 
             { 
                 patientId: activePatientId, 
                 notes 
@@ -612,6 +612,7 @@ const handleRequestAppointment = async () => {
 
         alert("Strategic message dispatched to support@allvihealth.com!");
         setIsModalOpen(false);
+        console.log(res.data)
         setNotes('');
     } catch (error) {
         console.error("❌ Error dispatching appointment request:", error);

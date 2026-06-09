@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Printer } from 'lucide-react';
+import axios from 'axios'; // 🚀 Added Axios to stream your database hook arrays
 
 const getTimelineBadgeStyles = (status) => {
     if (status === 'green' || status === 'optimal') return { bg: '#EAF5EE', text: '#2D6A4F' };
@@ -15,6 +16,9 @@ const AdvocacyDoc = ({
     dynamicStress = '—'
 }) => {
     
+    // 🚀 NEW STATE SEEDS: Holds your real dynamic backend AI questions array
+    const [liveQuestions, setLiveQuestions] = useState([]);
+
     // 1. Sort the lab panels ascending (oldest first) and slice the last 3
     const sortedLabPanels = data?.labs && Array.isArray(data.labs)
         ? [...data.labs].sort((a, b) => new Date(a.test_date) - new Date(b.test_date)).slice(-3)
@@ -59,8 +63,57 @@ const AdvocacyDoc = ({
     const latestFerritin = newestPanel ? getHistoricalValue(newestPanel, 'ferritin') : '19';
     const latestTSH = newestPanel ? getHistoricalValue(newestPanel, 'tsh') : '2.13';
 
+    // 🚀 NEW DYNAMIC SIDE-EFFECT HOOK: Fetches generated questions directly from your API endpoint
+    const activePatientId = data?.labs?.[0]?.patient_id || 'Allvi-6170';
+    
+    useEffect(() => {
+        const fetchLiveAdvocacyQuestions = async () => {
+            try {
+                const baseURL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+                    ? 'http://127.0.0.1:5000'
+                    : import.meta.env.VITE_SERVER_URL || '';
+
+                const token = localStorage.getItem('allvi_auth_token');
+
+                const res = await axios.get(`${baseURL}/api/patient/advocacy-doc/${activePatientId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.data?.success && res.data?.questions) {
+                    let extractedGuidelines = [];
+                    
+                    // Normalize the array payload context coming from getAdvocacyDocData
+                    if (Array.isArray(res.data.questions)) {
+                        extractedGuidelines = res.data.questions;
+                    } else if (res.data.questions.guidelines && Array.isArray(res.data.questions.guidelines)) {
+                        extractedGuidelines = res.data.questions.guidelines;
+                    }
+
+                    // Convert array variants safely into structured layout signatures
+                    const normalizedQuestions = extractedGuidelines.map((item) => {
+                        if (typeof item === 'object' && item !== null) {
+                            return { title: item.title || "Clinical Focus", content: item.content || "" };
+                        }
+                        return { title: "Clinical Discussion Point", content: String(item) };
+                    });
+
+                    if (normalizedQuestions.length > 0) {
+                        setLiveQuestions(normalizedQuestions);
+                    }
+                }
+            } catch (err) {
+                console.error("⚠️ Background live questions sync skipped, applying core baseline logic:", err.message);
+            }
+        };
+
+        if (activePatientId) {
+            fetchLiveAdvocacyQuestions();
+        }
+    }, [activePatientId]);
+
     // 5. Build dynamic or fallback questions from backend payload array hooks
-    const consultationQuestions = data?.advocacy_questions || [
+    // 🚀 Fallback arrays persist cleanly if your API is processing or compiling
+    const consultationQuestions = liveQuestions.length > 0 ? liveQuestions : [
         {
             title: "Iron supplementation",
             content: `is 25mg ferrous bisglycinate sufficient? Ferritin declined from ${initialFerritin} → ${latestFerritin} ng/mL over 2.5 months of supplementation.`
@@ -99,7 +152,7 @@ const AdvocacyDoc = ({
                     </div>
                 </div>
                 <button className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0F4C5C', color: '#F7F1E8', border: 'none', borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }} onClick={() => window.print()}>
-                    <Printer size={14} /> Download PDF
+                    <button style={{ background: 'none', border: 'none', color: 'inherit', display: 'flex', alignItems: 'center', gap: '6px', padding: 0, font: 'inherit', cursor: 'pointer' }}><Printer size={14} /> Download PDF</button>
                 </button>
             </div>
 
