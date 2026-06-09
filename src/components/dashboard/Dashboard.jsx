@@ -11,6 +11,8 @@ import {
 import AIInsights from '../AIInsights';
 import WeeklyReport from './WeeklyReport';
 import WhatsNextCard from './WhatsNextCard';
+import AdvocacyDoc from './AdvocacyDoc';
+import MyProtocol from './MyProtocol';
 
 // ─── LAB MARKER REGISTRY ───────────────────────────────────────────────────────
 const MARKER_REGISTRY = {
@@ -1438,190 +1440,19 @@ const Dashboard = ({ patientId: propPatientId }) => {
                             evaluateTrend={evaluateTrend}
                         />
                     )}
-                    {/* ═══════════════════════ SCREEN 4: ADVOCACY DOC SCREEN ═══════════════════════ */}
+                    {/* ═══════════════════════ SCREEN 4: APPOINTMENT ADVOCACY DOC ═══════════════════════ */}
                     {currentScreen === 'advocacy' && (
-                        <div style={{ animation: 'fadeIn 0.2s ease-in-out' }}>
-                            <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-                                <div>
-                                    <div className="ph-title" style={{ fontFamily: "'Playfair Display', serif", fontSize: '26px', fontWeight: 600, color: '#1F2937' }}>
-                                        Appointment Advocacy Document
-                                    </div>
-                                    <div className="ph-sub" style={{ fontSize: '14px', color: '#6B7280', marginTop: '4px' }}>
-                                        Prepared for Endocrinologist Consultation · {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                    </div>
-                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginTop: '8px', padding: '4px 12px', background: '#EAF5EE', borderRadius: '20px' }}>
-                                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#2D6A4F', letterSpacing: '0.1em' }}>✓ CLINICIAN APPROVED</span>
-                                    </div>
-                                </div>
-                                <button className="btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#0F4C5C', color: '#F7F1E8', border: 'none', borderRadius: '8px', padding: '10px 18px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }} onClick={() => window.print()}>
-                                    <Printer size={14} /> Download PDF
-                                </button>
-                            </div>
-
-                            <div className="card" style={{ background: '#FFFFFF', borderRadius: '12px', padding: '24px', boxBurial: '0 1px 3px rgba(15,76,92,0.08)', border: '1px solid rgba(15,76,92,0.06)', marginTop: '24px' }}>
-                                <div style={{ marginBottom: '28px' }}>
-                                    <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
-                                        Patient Context
-                                    </div>
-                                    <div style={{ overflowX: 'auto' }}>
-                                        <table className="avt" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '400px' }}>
-                                            <tbody>
-                                                <tr>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', fontWeight: 600, color: '#6B7280', width: '38%' }}>Identity Profile</td>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', color: '#1F2937' }}>
-                                                        {demographics.name || 'Rashmi'} ({demographics.age ? `Age: ${demographics.age}` : '—'} · {demographics.gender || '—'})
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', fontWeight: 600, color: '#6B7280' }}>Diagnosis Profile</td>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', color: '#1F2937' }}>
-                                                        {intakeData?.diagnoses?.length > 0 ? intakeData.diagnoses.join(', ') : "Hashimoto's Thyroiditis — January 2026"}
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', fontWeight: 600, color: '#6B7280' }}>Medication Track</td>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: '1px solid #EDE7DB', verticalAlign: 'top', color: '#1F2937' }}>
-                                                        Levothyroxine 25mcg daily (taken 6am). Day {totalDaysTracked + 2} on profile timeline records.
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: 'none', verticalAlign: 'top', fontWeight: 600, color: '#6B7280' }}>Program Focus Goal</td>
-                                                    <td style={{ padding: '10px 4px', fontSize: '13px', borderBottom: 'none', verticalAlign: 'top', textTransform: 'uppercase', fontWeight: 600, color: '#0F4C5C' }}>
-                                                        {demographics.goal || 'thyroid'} focus
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-
-                                <div style={{ marginBottom: '28px' }}>
-                                    <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
-                                        Laboratory Trajectory
-                                    </div>
-                                    <div style={{ overflowX: 'auto' }}>
-                                        <table className="lt" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-                                            <thead>
-                                                <tr>
-                                                    <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Test Vector</th>
-                                                    {data.labs?.length > 0 ? (
-                                                        [...data.labs]
-                                                            .sort((a, b) => new Date(a.test_date) - new Date(b.test_date))
-                                                            .slice(-3)
-                                                            .map((report, idx) => (
-                                                                <th key={report.id || idx} style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>
-                                                                    {report.test_date ? new Date(report.test_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : `Record ${idx + 1}`}
-                                                                </th>
-                                                            ))
-                                                    ) : (
-                                                        <>
-                                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Jan 2026</th>
-                                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Mar 11</th>
-                                                            <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Apr 14</th>
-                                                        </>
-                                                    )}
-                                                    <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Reference</th>
-                                                    <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: '#6B7280', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid #EDE7DB' }}>Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {['tsh', 'free_t4', 'free_t3', 'ferritin'].map(key => {
-                                                    let markerMeta = null;
-                                                    for (const [, cat] of Object.entries(MARKER_REGISTRY)) {
-                                                        if (cat.markers[key]) {
-                                                            markerMeta = cat.markers[key];
-                                                            break;
-                                                        }
-                                                    }
-                                                    if (!markerMeta) return null;
-
-                                                    const latestValue = mergedLabData[key];
-                                                    const trafficStatus = getTrafficLight(latestValue, markerMeta);
-                                                    const trafficCfg = TRAFFIC_CFG[trafficStatus] || TRAFFIC_CFG.missing;
-
-                                                    const staticFallbacks = {
-                                                        tsh: ['4.48', '—', '2.13'],
-                                                        free_t4: ['1.01', '1.0', '1.1'],
-                                                        free_t3: ['—', '2.5', '2.6'],
-                                                        ferritin: ['24', '—', '19']
-                                                    };
-
-                                                    return (
-                                                        <tr key={key}>
-                                                            <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937', fontWeight: 600 }}>{markerMeta.label}</td>
-                                                            {data.labs?.length > 0 ? (
-                                                                [...data.labs]
-                                                                    .sort((a, b) => new Date(a.test_date) - new Date(b.test_date))
-                                                                    .slice(-3)
-                                                                    .map((report, idx) => (
-                                                                        <td key={report.id || idx} style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937' }}>
-                                                                            {report[key] !== undefined && report[key] !== null && report[key] !== '' ? `${report[key]} ${key !== 'tsh' ? markerMeta.unit : ''}`.trim() : '—'}
-                                                                        </td>
-                                                                    ))
-                                                            ) : (
-                                                                staticFallbacks[key]?.map((fbVal, i) => (
-                                                                    <td key={i} style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937' }}>{fbVal}</td>
-                                                                )) || (
-                                                                    <>
-                                                                        <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937' }}>{"—"}</td>
-                                                                        <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937' }}>{"—"}</td>
-                                                                        <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#1F2937' }}>{"—"}</td>
-                                                                    </>
-                                                                )
-                                                            )}
-                                                            <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8', color: '#6B7280' }}>
-                                                                {key === 'ferritin' ? 'Optimal 70–90*' : `${markerMeta.range[0]}–${markerMeta.range[1]} ${markerMeta.unit}`}
-                                                            </td>
-                                                            <td style={{ padding: '12px', fontSize: '13px', borderBottom: '1px solid #F7F1E8' }}>
-                                                                <span className="lb" style={{ display: 'inline-flex', alignItems: 'center', padding: '2px 8px', borderRadius: '10px', fontSize: '11px', fontWeight: 600, backgroundColor: trafficCfg.bg, color: trafficCfg.text }}>
-                                                                    {trafficStatus === 'green' ? '✓ In Range' : trafficStatus === 'amber' ? '⚠ Low-normal' : trafficStatus === 'red' ? '⚠ Out of Range' : '⚪ Not Tested'}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div style={{ fontSize: '11px', color: '#6B7280', marginTop: '8px', fontStyle: 'italic' }}>* Functional optimal range for Hashimoto's/levothyroxine patients: 70–90 ng/mL</div>
-                                </div>
-
-                                <div>
-                                    <div className="avs-title" style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#0F4C5C', borderBottom: '1px solid #E8F4F7', paddingBottom: '6px', marginBottom: '12px' }}>
-                                        Questions for This Consultation
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>1</div>
-                                            <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
-                                                <strong>Iron supplementation:</strong> Is the current dosing protocol tracking as intended? Ferritin levels sit suboptimal at <span style={{ fontWeight: 700, color: '#C97B2E' }}>{mergedLabData?.ferritin !== undefined ? `${mergedLabData.ferritin} ng/mL` : '19 ng/mL'}</span>, demonstrating incorrect trajectory down from baseline records.
-                                            </div>
-                                        </div>
-
-                                        <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>2</div>
-                                            <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
-                                                <strong>Should ferritin be rechecked sooner than May?</strong> Ferritin metrics are moving inverse to programmatic ingestion pathways.
-                                            </div>
-                                        </div>
-
-                                        <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: '1px solid #EDE7DB' }}>
-                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>3</div>
-                                            <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
-                                                <strong>Levothyroxine dose optimization boundaries:</strong> Does the current synchronized profile calculation value of <span style={{ fontWeight: 700, color: '#2D6A4F' }}>TSH ({mergedLabData?.tsh !== undefined ? `${mergedLabData.tsh} mIU/L` : '2.13 mIU/L'})</span> justify keeping the current 25mcg self-titrated pathway?
-                                            </div>
-                                        </div>
-
-                                        <div className="qn" style={{ display: 'flex', gap: '12px', padding: '12px 0', borderBottom: 'none' }}>
-                                            <div className="qn-num" style={{ padding: "8px", width: '24px', height: '24px', background: '#0F4C5C', color: '#F7F1E8', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 700, flexShrink: 0, marginTop: '1px' }}>4</div>
-                                            <div className="qn-text" style={{ fontSize: '13px', color: '#1F2937', lineHeight: '1.5' }}>
-                                                <strong>Subjective parameter correlations:</strong> Cross-evaluating clinical records threshold patterns. Current active live telemetry snapshot tracks an average continuous daily stress margin value index score of <strong>{dynamicStress} / 10</strong>.
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <AdvocacyDoc
+                            demographics={demographics}
+                            intakeData={intakeData}
+                            totalDaysTracked={totalDaysTracked}
+                            data={data}
+                            mergedLabData={mergedLabData}
+                            dynamicStress={dynamicStress}
+                            MARKER_REGISTRY={MARKER_REGISTRY}
+                            getTrafficLight={getTrafficLight}
+                            TRAFFIC_CFG={TRAFFIC_CFG}
+                        />
                     )}
 
                     {/* ═══════════════════════ SCREEN 5: Lab Results SCREEN ═══════════════════════ */}
@@ -1649,72 +1480,14 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                     {/* ═══════════════════════ SCREEN 6: MY PROTOCOL SCREEN ═══════════════════════ */}
                     {currentScreen === 'protocol' && (
-                        <>
-                            <div className="ph" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-                                <div>
-                                    <div className="ph-title">My Protocol</div>
-                                    <div className="ph-sub">Personalised Lifestyle Support · Hashimoto's · Delivered Week 2 · Updated May 2026</div>
-                                </div>
-                                <button className="btn-primary">⬇ Download PDF</button>
-                            </div>
-
-                            <div className="card" style={{ background: '#0F4C5C', border: 'none', color: '#F7F1E8', marginBottom: '22px' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                                    <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)', marginBottom: '6px' }}>Diagnosis</div><div style={{ fontSize: '14px', fontWeight: 600 }}>Hashimoto's Thyroiditis</div><div style={{ fontSize: '12px', color: 'rgba(247,241,232,0.7)', marginTop: '2px' }}>Diagnosed Jan 2026</div></div>
-                                    <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)', marginBottom: '6px' }}>Top Symptoms at Start</div><div style={{ fontSize: '13px', color: '#F7F1E8' }}>Constipation · Mood · Cold intolerance</div></div>
-                                    <div><div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', color: 'rgba(247,241,232,0.6)', marginBottom: '6px' }}>Primary Goals</div><div style={{ fontSize: '13px', color: '#F7F1E8' }}>Improve GI · Slow autoimmune attack</div></div>
-                                </div>
-                            </div>
-
-                            <div className="card">
-                                <div className="pt-tabs">
-                                    {['nut', 'sup', 'exc', 'slp', 'str', 'chk'].map(tab => (
-                                        <div key={tab} className={`pt-tab ${activeProtocolTab === tab ? 'on' : ''}`} onClick={() => setActiveProtocolTab(tab)}>
-                                            {tab === 'nut' ? '🥗 Nutrition' : tab === 'sup' ? '💊 Supplements' : tab === 'exc' ? '🏃 Exercise' : tab === 'slp' ? '🌙 Sleep' : tab === 'str' ? '🍃 Stress' : '✅ Action Plan'}
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {activeProtocolTab === 'nut' && (
-                                    <div className="pt-content on">
-                                        <p style={{ fontSize: '13px', color: '#6B7280', padding: '4px 0 16px' }}>93% compliance over {totalDaysTracked} days — this is now a habit, not a restriction.</p>
-                                        <div className="pr"><div className="pr-icon">🚫</div><div><div className="pr-title">Always avoid: Gluten, dairy, soy, refined sugar</div><div className="pr-detail">Gluten triggers molecular mimicry with thyroid tissue. Your dramatic improvement confirms these were key triggers.</div></div></div>
-                                        <div className="pr"><div className="pr-icon">🐟</div><div><div className="pr-title">Protein at every meal — 20–30g target</div><div className="pr-detail">Wild-caught fish, pasture-raised poultry. Protein supports thyroid hormone production.</div></div></div>
-                                    </div>
-                                )}
-
-                                {activeProtocolTab === 'sup' && (
-                                    <div className="pt-content on">
-                                        <p style={{ fontSize: '13px', color: '#6B7280', padding: '4px 0 16px' }}>Clinician-reviewed. Do not change doses without checking with your Allvi team.</p>
-                                        <div style={{ overflowX: 'auto' }}>
-                                            <table className="stab" style={{ minWidth: '500px' }}>
-                                                <thead><tr><th>Supplement</th><th>Dose</th><th>Why</th></tr></thead>
-                                                <tbody>
-                                                    <tr><td style={{ fontWeight: 600 }}>Selenium</td><td>200mcg</td><td>T4→T3 conversion; reduces TPO antibodies</td></tr>
-                                                    <tr style={{ background: '#F7F1E8' }}><td style={{ fontWeight: 600 }}>Magnesium glycinate</td><td>300–400mg</td><td>Sleep, mood, gut motility</td></tr>
-                                                    <tr><td style={{ fontWeight: 600 }}>Iron 50mg ⚠</td><td>50mg ferrous bisglycinate</td><td>Ferritin at 19 → target 70–90. Alt day maximises absorption.</td></tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div style={{ marginTop: '12px', padding: '12px', background: '#FDF3E7', borderRadius: '8px', fontSize: '12px', color: '#C97B2E' }}>⚠ Iron: avoid coffee, tea, or calcium within 1 hour. GI side effects expected weeks 1–2 — increase hydration on iron days.</div>
-                                    </div>
-                                )}
-
-                                {activeProtocolTab === 'chk' && (
-                                    <div className="pt-content on">
-                                        <p style={{ fontSize: '13px', color: '#6B7280', padding: '4px 0 16px' }}>Tap any item to mark it done.</p>
-                                        <div style={{ marginBottom: '16px' }}>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', background: '#2D6A4F', color: 'white', borderRadius: '4px', padding: '3px 10px', fontSize: '11px', fontWeight: 700, marginBottom: '10px' }}>✓ ALREADY DOING</div>
-                                            <div className="cl-item"><div className={`cb-box ${checkedItems.includes('diet') ? 'done' : ''}`} onClick={() => toggleChecked('diet')}>{checkedItems.includes('diet') ? '✓' : ''}</div><div className="cl-text">Gluten-free, dairy-free diet</div></div>
-                                        </div>
-                                        <div>
-                                            <div style={{ display: 'inline-flex', alignItems: 'center', background: '#C97B2E', color: 'white', borderRadius: '4px', padding: '3px 10px', fontSize: '11px', fontWeight: 700, marginBottom: '10px' }}>WATCH — Discuss with Endo</div>
-                                            <div className="cl-item"><div className={`cb-box ${checkedItems.includes('ferritin') ? 'done' : ''}`} onClick={() => toggleChecked('ferritin')}>{checkedItems.includes('ferritin') ? '✓' : ''}</div><div className="cl-text">May: Ferritin recheck + TPO antibodies</div></div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </>
+                        <MyProtocol
+                            data={data}
+                            totalDaysTracked={totalDaysTracked}
+                            activeProtocolTab={activeProtocolTab}
+                            setActiveProtocolTab={setActiveProtocolTab}
+                            checkedItems={checkedItems}
+                            toggleChecked={toggleChecked}
+                        />
                     )}
 
                     {/* ═══════════════════════ SCREEN 7: Health Insights SCREEN ═══════════════════════ */}
