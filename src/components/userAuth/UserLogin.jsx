@@ -18,7 +18,7 @@ const UserLogin = ({
       <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200">
         <div className="p-10 md:p-12">
           <h2 className="text-2xl font-black text-[#1F2937] uppercase tracking-tight mb-2">Welcome to Allvi</h2>
-          <p className="text-sm text-slate-500 mb-8">Access your records using either your email address or ALLVI ID string.</p>
+          <p className="text-sm text-slate-500 mb-8">Access your records using either your email address or ALLVI ID.</p>
 
           <form onSubmit={onSubmit} className="space-y-4">
             <div className="relative">

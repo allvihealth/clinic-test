@@ -591,20 +591,33 @@ const Dashboard = ({ patientId: propPatientId }) => {
         navigate('/login');
     };
 
-    const handleAppointmentSubmit = async () => {
-        if (!notes.trim()) return;
-        setSending(true);
-        try {
-            await axios.post(`${baseURL}/api/patient/request-appointment`, { patientId: activePatientId, notes });
-            alert("Strategic message dispatched to support@allvihealth.com!");
-            setIsModalOpen(false);
-            setNotes('');
-        } catch {
-            alert("Strategic communication relay pipeline failed.");
-        } finally {
-            setSending(false);
-        }
-    };
+const handleRequestAppointment = async () => {
+    try {
+
+
+        // 🚀 Extract token from localStorage
+        const token = localStorage.getItem('allvi_auth_token');
+
+        // 🛡️ Pass headers as the third argument in axios.post
+        await axios.post(
+            `${baseURL}/api/patient/request-appointment`, 
+            { 
+                patientId: activePatientId, 
+                notes 
+            }, 
+            {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }
+        );
+
+        alert("Strategic message dispatched to support@allvihealth.com!");
+        setIsModalOpen(false);
+        setNotes('');
+    } catch (error) {
+        console.error("❌ Error dispatching appointment request:", error);
+        alert(error.response?.data?.error || "Failed to submit request.");
+    }
+};
 
     const handleCheckinSubmit = async () => {
         try {
@@ -757,6 +770,19 @@ const Dashboard = ({ patientId: propPatientId }) => {
         }
         return null;
     };
+    const getFormattedDate = () => {
+        const today = new Date();
+
+        const options = {
+            weekday: 'long',  // "Sunday"
+            day: 'numeric',   // "11"
+            month: 'long',    // "May"
+            year: 'numeric'   // "2026"
+        };
+
+        // Format options using British/International locale rules to omit commas between day and month
+        return today.toLocaleDateString('en-GB', options);
+    };
 
     const formatRowLabel = (markerKey, metaObject) => {
         if (metaObject) return metaObject.label;
@@ -821,9 +847,14 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .si-icon { width: 20px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
     
     .main { flex: 1; padding: 32px; max-width: 100%; text-align: left; box-sizing: border-box; }
+
+    /*cards */ 
+
     .card { background: #FFFFFF; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(15,76,92,0.08); border: 1px solid rgba(15,76,92,0.06); margin-bottom: 24px; max-height: 100%; }
+    .card-title{font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:var(--charcoal);margin-bottom:16px;}
+
     .ph { margin-bottom: 28px; }
-    .ph-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 600; color: #1F2937; }
+    .ph-title { font-family: 'Playfair Display', "serif"; font-size: 26px; font-weight: 600; color: #1F2937; }
     .ph-sub { font-size: 14px; color: #6B7280; margin-top: 4px; }
     .g4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
     .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
@@ -832,7 +863,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .kpi.am::before { background: #C97B2E; }
     .kpi.gr::before { background: #2D6A4F; }
     .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6B7280; margin-bottom: 8px; }
-    .kpi-val { font-family: 'Playfair Display', serif; font-size: 36px; font-weight: 400; color: #0F4C5C; line-height: 1; }
+    .kpi-val { font-family: 'Playfair Display',"serif"; font-size: 36px; font-weight: 400; color: #0F4C5C; line-height: 1; }
     .kpi-val.am { color: #C97B2E; }
     .kpi-val.gr { color: #2D6A4F; }
     .kpi-sub { font-size: 12px; color: #6B7280; margin-top: 6px; }
@@ -899,10 +930,10 @@ const Dashboard = ({ patientId: propPatientId }) => {
     .ms { background: #0F4C5C; color: #F7F1E8; border: none; border-radius: 8px; padding: 11px 18px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer; }
     /* Add these lines inside the __html template string in your code */
     .sg { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .supp { position: relative; display: flex; align-items: center; background-color: #F9F8F6; border: 1px solid #F0ECE3; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 500; cursor: help; }
+    .supp { position: relative; display: flex; align-items: center; background-color : #F7F1E8; border: 1px solid #F0ECE3; border-radius: 8px; padding: 10px 14px; font-size: 14px; font-weight: 500; cursor: help; }
     .supp .tt { visibility: hidden; width: 240px; background-color: #1F2937; color: #fff; text-align: left; border-radius: 6px; padding: 8px 12px; position: absolute; z-index: 10; bottom: 125%; left: 50%; transform: translateX(-50%); opacity: 0; transition: opacity 0.2s; font-size: 11px; line-height: 1.4; font-weight: 400; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
     .supp:hover .tt { visibility: visible; opacity: 1; }
-    .sd { width: 8px; height: 8px; background-color: #10B981; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
+    .sd { width: 8px; height: 8px; background-color: #2D6A4F; border-radius: 50%; margin-right: 10px; flex-shrink: 0; }
     .sd.am { background-color: #F59E0B; }
     .sd-days { margin-left: auto; color: #6B7280; font-size: 12px; font-weight: 600; }
     .pb { width: 100%; height: 6px; background-color: #ECE9E1; border-radius: 10px; overflow: hidden; }
@@ -937,8 +968,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
         .nav { padding: 0 16px; }
         .nav-streak { font-size: 11px; padding: 4px 10px; }
     }
-    `
-            }} />
+    `}} />
 
             {/* TOP BAR BRAND ENGINE NAVIGATION */}
             <nav className="nav">
@@ -984,26 +1014,26 @@ const Dashboard = ({ patientId: propPatientId }) => {
                 <aside className={`sidebar no-print ${isSidebarOpen ? 'open' : ''}`}>
                     <div className="si-section">Overview</div>
                     <div className={`si ${currentScreen === 'dashboard' ? 'on' : ''}`} onClick={() => { setCurrentScreen('dashboard'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><LayoutDashboard size={16} /></span> Dashboard
+                        <span className="si-icon">⊞</span> Dashboard
                     </div>
                     <div className={`si ${currentScreen === 'checkin' ? 'on' : ''}`} onClick={() => { setCurrentScreen('checkin'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><CheckSquare size={16} /></span> Daily Check-In
+                        <span className="si-icon">✓</span> Daily Check-In
                     </div>
 
                     <div className="si-section">Reports</div>
                     <div className={`si ${currentScreen === 'reports' ? 'on' : ''}`} onClick={() => { setCurrentScreen('reports'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><ClipboardList size={16} /></span> Weekly Reports
+                        <span className="si-icon">📋</span> Weekly Reports
                     </div>
                     <div className={`si ${currentScreen === 'advocacy' ? 'on' : ''}`} onClick={() => { setCurrentScreen('advocacy'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><FileText size={16} /></span> Advocacy Doc
+                        <span className="si-icon">📄</span> Advocacy Doc
                     </div>
 
                     <div className="si-section">Health</div>
                     <div className={`si ${currentScreen === 'labs' ? 'on' : ''}`} onClick={() => { setCurrentScreen('labs'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><FlaskConical size={16} /></span> Lab Results
+                        <span className="si-icon">🧪</span> Lab Results
                     </div>
                     <div className={`si ${currentScreen === 'protocol' ? 'on' : ''}`} onClick={() => { setCurrentScreen('protocol'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><BookOpen size={16} /></span> My Protocol
+                        <span className="si-icon">💊</span> My Protocol
                     </div>
                     <div className={`si ${currentScreen === 'insights' ? 'on' : ''}`} onClick={() => { setCurrentScreen('insights'); setIsSidebarOpen(false); }}>
                         <span className="si-icon"><FlaskConical size={16} /></span> Health Insights
@@ -1011,7 +1041,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
 
                     <div className="si-section">Support</div>
                     <div className={`si ${currentScreen === 'messages' ? 'on' : ''}`} onClick={() => { setCurrentScreen('messages'); setIsSidebarOpen(false); }}>
-                        <span className="si-icon"><MessageSquare size={16} /></span> Messages
+                        <span className="si-icon">💬</span> Messages
                     </div>
                     <div className="si" onClick={() => { setIsModalOpen(true); setIsSidebarOpen(false); }}>
                         <span className="si-icon"><PhoneCall size={16} /></span> Book a Call
@@ -1050,17 +1080,17 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                 </div>
                                 <div className="kpi gr">
                                     <div className="kpi-label">Mood</div>
-                                    <div className="kpi-val gr">{dynamicMood}</div>
+                                    <div className="kpi-val">{dynamicMood}</div>
                                     <div className="kpi-sub">{evaluateTrend(dynamicMood, historicalSymptomRow, 'mood')}</div>
                                 </div>
                                 <div className="kpi gr">
                                     <div className="kpi-label">Sleep</div>
-                                    <div className="kpi-val gr">{dynamicSleep}</div>
+                                    <div className="kpi-val">{dynamicSleep}</div>
                                     <div className="kpi-sub">{evaluateTrend(dynamicSleep, historicalSymptomRow, 'sleep')}</div>
                                 </div>
                                 <div className="kpi am">
                                     <div className="kpi-label">Stress</div>
-                                    <div className="kpi-val am">{dynamicStress}</div>
+                                    <div className="kpi-val ">{dynamicStress}</div>
                                     <div className="kpi-sub" style={{ color: dynamicStress <= 2 ? '#2D6A4F' : '#9B2226' }}>
                                         {dynamicStress <= 1.5 && latestSymptomRow ? "↓ programme low" : evaluateTrend(dynamicStress, historicalSymptomRow, 'stress')}
                                     </div>
@@ -1141,10 +1171,10 @@ const Dashboard = ({ patientId: propPatientId }) => {
                                     <table className="lt" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                         <thead>
                                             <tr>
-                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Test</th>
-                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Latest</th>
-                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Status</th>
-                                                <th style={{ fontSize: '11px', fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--grey)', padding: '8px 12px', textAlign: 'left', borderBottom: '1px solid var(--ivory-dark)' }}>Trend</th>
+                                                <th>Test</th>
+                                                <th >Latest</th>
+                                                <th >Status</th>
+                                                <th >Trend</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -1330,7 +1360,9 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         <div className="screen on" style={{ display: 'block' }}>
                             <div className="ph">
                                 <div className="ph-title">Daily Check-In</div>
-                                <div className="ph-sub">Sunday, 11 May 2026 · Yesterday you mentioned constipation. How are you feeling today?</div>
+                                <div className="ph-sub">
+                                    {getFormattedDate()} · Yesterday you mentioned constipation. How are you feeling today?
+                                </div>
                             </div>
 
                             <div className="card" style={{ marginBottom: '24px', background: '#FDF3E7', border: '1px solid #C97B2E', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1544,7 +1576,7 @@ const Dashboard = ({ patientId: propPatientId }) => {
                         <div style={{ padding: '24px' }}>
                             <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', color: '#6B7280', marginBottom: '8px' }}>Operational Inquiry Parameters</label>
                             <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Detail current tracking status updates or programmatic clinical inquiries..." className="ta" style={{ width: '100%', minHeight: '120px', marginBottom: '16px' }} />
-                            <button onClick={handleAppointmentSubmit} disabled={sending || !notes.trim()} className="sub-btn" style={{ opacity: (sending || !notes.trim()) ? 0.6 : 1 }}>
+                            <button onClick={handleRequestAppointment} disabled={sending || !notes.trim()} className="sub-btn" style={{ opacity: (sending || !notes.trim()) ? 0.6 : 1 }}>
                                 {sending ? <Loader2 className="animate-spin" size={16} /> : <Send size={16} className="inline mr-2" />} Submit Message Parameters
                             </button>
                         </div>

@@ -18,11 +18,29 @@
     }
 }
 :root {
+  --teal-mid: #1A6B7C; 
+  --teal-light: #E8F4F7;
+  --ivory-dark: #EDE7DB;
+  --amber: #C97B2E; 
+  --amber-bg: #FDF3E7;
+  --green: #2D6A4F; 
+  --green-bg: #EAF5EE;
+  --red: #9B2226; 
+  --red-bg: #FDECEA;
+  --grey: #6B7280; 
+  --white: #FFFFFF;
+  --shadow-sm: 0 1px 3px rgba(15,76,92,0.08);
+  --shadow-md: 0 4px 16px rgba(15,76,92,0.10);
+  --radius: 12px; 
+  --radius-sm: 8px;
+
+
+
   --teal: #0F4C5C;
   --ivory: #F7F1E8;
   --charcoal: #1F2937;
   --serif: 'Playfair Display', serif; /* Or your preferred serif */
-  --sans: 'Inter', sans-serif;
+  --sans: 'DM Sans', sans-serif;
 }
 
 body {
